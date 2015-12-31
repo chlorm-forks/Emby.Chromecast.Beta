@@ -31,8 +31,7 @@ limitations under the License.
             <h1>Ready to cast</h1>
             <h2>Select your media in Emby and play it here</h2>
         </div>
-        <div class="timeOfDay"><span>{{timePrefix}}</span> <span class="timeSuffix">{{timeSuffix}}</span></div>
-        <p class="version-number">{{versionNumber}}</p>
+        <div class="timeOfDay"><span class="timePrefix"></span> <span class="timeSuffix"></span></div>
     </div>
     <video id="video-player" crossorigin="anonymous" preload="auto"></video>
     <img id="photo"></img>
@@ -85,8 +84,9 @@ limitations under the License.
         </div>
     </div>
     <div class="detailLogo" ng-style="{ backgroundImage : 'url(' + detailLogoUrl + ')' }"></div>
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.min.js"></script>
-	<script src="js/sha1.js?hash=051"></script>
-    <script src="app.js?hash=051"></script>
+    <script src="bower_components/requirejs/require.js"></script>
+    <script>
+        require(['app.js?t=' + new Date().getTime()]);
+    </script>
 </body>
 </html>
