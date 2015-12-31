@@ -1,3 +1,62 @@
+function parseISO8601Date(s, options) {
+
+    options = options || {};
+
+    // parenthese matches:
+    // year month day    hours minutes seconds
+    // dotmilliseconds
+    // tzstring plusminus hours minutes
+    var re = /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|([+-])(\d{2}):(\d{2}))?/;
+
+    var d = s.match(re);
+
+    // "2010-12-07T11:00:00.000-09:00" parses to:
+    //  ["2010-12-07T11:00:00.000-09:00", "2010", "12", "07", "11",
+    //     "00", "00", ".000", "-09:00", "-", "09", "00"]
+    // "2010-12-07T11:00:00.000Z" parses to:
+    //  ["2010-12-07T11:00:00.000Z",      "2010", "12", "07", "11",
+    //     "00", "00", ".000", "Z", undefined, undefined, undefined]
+
+    if (!d) {
+
+        throw "Couldn't parse ISO 8601 date string '" + s + "'";
+    }
+
+    // parse strings, leading zeros into proper ints
+    var a = [1, 2, 3, 4, 5, 6, 10, 11];
+    for (var i in a) {
+        d[a[i]] = parseInt(d[a[i]], 10);
+    }
+    d[7] = parseFloat(d[7]);
+
+    // Date.UTC(year, month[, date[, hrs[, min[, sec[, ms]]]]])
+    // note that month is 0-11, not 1-12
+    // see https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/UTC
+    var ms = Date.UTC(d[1], d[2] - 1, d[3], d[4], d[5], d[6]);
+
+    // if there are milliseconds, add them
+    if (d[7] > 0) {
+        ms += Math.round(d[7] * 1000);
+    }
+
+    // if there's a timezone, calculate it
+    if (d[8] != "Z" && d[10]) {
+        var offset = d[10] * 60 * 60 * 1000;
+        if (d[11]) {
+            offset += d[11] * 60 * 1000;
+        }
+        if (d[9] == "-") {
+            ms -= offset;
+        } else {
+            ms += offset;
+        }
+    } else if (!options.toLocal) {
+        ms += new Date().getTimezoneOffset() * 60000;
+    }
+
+    return new Date(ms);
+}
+
 var BitrateCap = 20000000;
 var DefaultMaxBitrate = 3000000;
 
@@ -141,7 +200,7 @@ function getDeviceProfile() {
     return profile;
 }
 
-function setMetadata(item, metadata, datetime) {
+function setMetadata(item, metadata) {
 
     if (item.Type == 'Episode') {
 
@@ -150,7 +209,7 @@ function setMetadata(item, metadata, datetime) {
         metadata.episodeTitle = item.Name;
 
         if (item.PremiereDate) {
-            metadata.originalAirdate = datetime.parseISO8601Date(item.PremiereDate).toISOString();
+            metadata.originalAirdate = parseISO8601Date(item.PremiereDate).toISOString();
         }
 
         metadata.seriesTitle = item.SeriesName;
@@ -169,7 +228,7 @@ function setMetadata(item, metadata, datetime) {
         //metadata.type = chrome.cast.media.MetadataType.PHOTO;
 
         if (item.PremiereDate) {
-            metadata.creationDateTime = datetime.parseISO8601Date(item.PremiereDate).toISOString();
+            metadata.creationDateTime = parseISO8601Date(item.PremiereDate).toISOString();
         }
     }
 
@@ -182,7 +241,7 @@ function setMetadata(item, metadata, datetime) {
         }
 
         if (item.PremiereDate) {
-            metadata.releaseDate = datetime.parseISO8601Date(item.PremiereDate).toISOString();
+            metadata.releaseDate = parseISO8601Date(item.PremiereDate).toISOString();
         }
 
         metadata.songName = item.Name;
@@ -912,50 +971,47 @@ module.factory('embyActions', function ($timeout, $interval, $http) {
         var backdropUrl = getBackdropUrl(item, serverAddress) || '';
         var detailImageUrl = getPrimaryImageUrl(item, serverAddress) || '';
 
-        require(['datetime'], function (datetime) {
+        $timeout(function () {
+            $scope.status = 'details';
+            $scope.waitingbackdrop = backdropUrl;
 
-            $timeout(function () {
-                $scope.status = 'details';
-                $scope.waitingbackdrop = backdropUrl;
+            $scope.detailLogoUrl = getLogoUrl(item, serverAddress) || '';
+            $scope.overview = item.Overview || '';
+            $scope.genres = item.Genres.join(' / ');
+            $scope.displayName = getDisplayName(item);
+            document.getElementById('miscInfo').innerHTML = getMiscInfoHtml(item) || '';
+            document.getElementById('detailRating').innerHTML = getRatingHtml(item);
 
-                $scope.detailLogoUrl = getLogoUrl(item, serverAddress) || '';
-                $scope.overview = item.Overview || '';
-                $scope.genres = item.Genres.join(' / ');
-                $scope.displayName = getDisplayName(item);
-                document.getElementById('miscInfo').innerHTML = getMiscInfoHtml(item, datetime) || '';
-                document.getElementById('detailRating').innerHTML = getRatingHtml(item);
+            var playedIndicator = document.getElementById('playedIndicator');
 
-                var playedIndicator = document.getElementById('playedIndicator');
+            if (item.UserData.Played) {
 
-                if (item.UserData.Played) {
+                playedIndicator.style.display = 'block';
+                playedIndicator.innerHTML = '<span class="glyphicon glyphicon-ok"></span>';
+            }
+            else if (item.UserData.UnplayedItemCount) {
 
-                    playedIndicator.style.display = 'block';
-                    playedIndicator.innerHTML = '<span class="glyphicon glyphicon-ok"></span>';
-                }
-                else if (item.UserData.UnplayedItemCount) {
+                playedIndicator.style.display = 'block';
+                playedIndicator.innerHTML = item.UserData.UnplayedItemCount;
+            }
+            else {
+                playedIndicator.style.display = 'none';
+            }
 
-                    playedIndicator.style.display = 'block';
-                    playedIndicator.innerHTML = item.UserData.UnplayedItemCount;
-                }
-                else {
-                    playedIndicator.style.display = 'none';
-                }
+            if (item.UserData.PlayedPercentage && item.UserData.PlayedPercentage < 100 && !item.IsFolder) {
+                $scope.hasPlayedPercentage = false;
+                $scope.playedPercentage = item.UserData.PlayedPercentage;
 
-                if (item.UserData.PlayedPercentage && item.UserData.PlayedPercentage < 100 && !item.IsFolder) {
-                    $scope.hasPlayedPercentage = false;
-                    $scope.playedPercentage = item.UserData.PlayedPercentage;
+                detailImageUrl += "&PercentPlayed=" + parseInt(item.UserData.PlayedPercentage);
 
-                    detailImageUrl += "&PercentPlayed=" + parseInt(item.UserData.PlayedPercentage);
+            } else {
+                $scope.hasPlayedPercentage = false;
+                $scope.playedPercentage = 0;
+            }
 
-                } else {
-                    $scope.hasPlayedPercentage = false;
-                    $scope.playedPercentage = 0;
-                }
+            $scope.detailImageUrl = detailImageUrl;
 
-                $scope.detailImageUrl = detailImageUrl;
-
-            }, 0);
-        });
+        }, 0);
     }
 
     factory.displayItem = function ($scope, serverAddress, accessToken, userId, itemId) {
@@ -964,14 +1020,9 @@ module.factory('embyActions', function ($timeout, $interval, $http) {
 
         var url = getUrl(serverAddress, "Users/" + userId + "/Items/" + itemId);
 
-        fetchhelper.ajax({
-            url: url,
-            headers: getSecurityHeaders(accessToken, userId),
-            dataType: 'json',
-            type: 'GET'
-
-        }).then(function (item) {
-
+        $http.get(url, {
+            headers: getSecurityHeaders(accessToken, userId)
+        }).success(function (item) {
             showItem($scope, serverAddress, accessToken, userId, item);
         });
     };
@@ -1887,21 +1938,18 @@ module.controller('MainCtrl', function ($scope, $interval, $timeout, $http, emby
 
         var requestUrl = getUrl(item.serverAddress, 'Users/' + item.userId + '/Items/' + item.Id);
 
-        return fetchhelper.ajax({
+        return $http.get(requestUrl,
+          {
+              headers: getSecurityHeaders(item.accessToken, item.userId)
 
-            url: requestUrl,
-            headers: getSecurityHeaders(item.accessToken, item.userId),
-            dataType: 'json',
-            type: 'GET'
+          }).success(function (data) {
 
-        }).then(function (data) {
+              // Attach the custom properties we created like userId, serverAddress, itemId, etc
+              angular.extend(data, item);
 
-            // Attach the custom properties we created like userId, serverAddress, itemId, etc
-            angular.extend(data, item);
+              playItemInternal(data, options);
 
-            playItemInternal(data, options);
-
-        }, broadcastConnectionErrorMessage);
+          }).error(broadcastConnectionErrorMessage);
     }
 
     function playItemInternal(item, options) {
@@ -2136,10 +2184,7 @@ module.controller('MainCtrl', function ($scope, $interval, $timeout, $http, emby
         enableTimeUpdateListener(false);
         enableTimeUpdateListener(true);
 
-        require(['datetime'], function (datetime) {
-
-            setMetadata(item, mediaInfo.metadata, datetime);
-        });
+        setMetadata(item, mediaInfo.metadata);
 
         // We use false as we do not want to broadcast the new status yet
         // we will broadcast manually when the media has been loaded, this
@@ -2245,11 +2290,8 @@ function getIntros($http, serverAddress, accessToken, userId, firstItem) {
 
     var url = getUrl(serverAddress, 'Users/' + userId + '/Items/' + firstItem.Id + '/Intros');
 
-    return fetchhelper.ajax({
-        url: url,
-        dataType: 'json',
-        headers: getSecurityHeaders(accessToken, userId),
-        type: 'GET'
+    return $http.get(url, {
+        headers: getSecurityHeaders(accessToken, userId)
     });
 }
 
@@ -2300,7 +2342,7 @@ function translateRequestedItems($http, serverAddress, accessToken, userId, item
     });
 }
 
-function getMiscInfoHtml(item, datetime) {
+function getMiscInfoHtml(item) {
 
     var miscInfo = [];
     var text, date;
@@ -2310,7 +2352,7 @@ function getMiscInfoHtml(item, datetime) {
         if (item.PremiereDate) {
 
             try {
-                date = datetime.parseISO8601Date(item.PremiereDate);
+                date = parseISO8601Date(item.PremiereDate, { toLocal: true });
 
                 text = date.toLocaleDateString();
                 miscInfo.push(text);
@@ -2324,7 +2366,7 @@ function getMiscInfoHtml(item, datetime) {
     if (item.StartDate) {
 
         try {
-            date = datetime.parseISO8601Date(item.StartDate);
+            date = parseISO8601Date(item.StartDate, { toLocal: true });
 
             text = date.toLocaleDateString();
             miscInfo.push(text);
@@ -2353,10 +2395,10 @@ function getMiscInfoHtml(item, datetime) {
 
                 try {
 
-                    var endYear = datetime.parseISO8601Date(item.EndDate).getFullYear();
+                    var endYear = parseISO8601Date(item.EndDate, { toLocal: true }).getFullYear();
 
                     if (endYear != item.ProductionYear) {
-                        text += "-" + datetime.parseISO8601Date(item.EndDate).getFullYear();
+                        text += "-" + parseISO8601Date(item.EndDate, { toLocal: true }).getFullYear();
                     }
 
                 }
@@ -2378,7 +2420,7 @@ function getMiscInfoHtml(item, datetime) {
         else if (item.PremiereDate) {
 
             try {
-                text = datetime.parseISO8601Date(item.PremiereDate).getFullYear();
+                text = parseISO8601Date(item.PremiereDate, { toLocal: true }).getFullYear();
                 miscInfo.push(text);
             }
             catch (e) {
@@ -2393,7 +2435,7 @@ function getMiscInfoHtml(item, datetime) {
 
         if (item.Type == "Audio") {
 
-            miscInfo.push(datetime.getDisplayRunningTime(item.RunTimeTicks));
+            miscInfo.push(getDisplayRunTime(item.RunTimeTicks));
 
         } else {
             minutes = item.RunTimeTicks / 600000000;
@@ -2413,6 +2455,44 @@ function getMiscInfoHtml(item, datetime) {
     }
 
     return miscInfo.join('&nbsp;&nbsp;&nbsp;&nbsp;');
+}
+
+function getDisplayRunTime(ticks) {
+
+    var ticksPerHour = 36000000000;
+    var ticksPerMinute = 600000000;
+    var ticksPerSecond = 10000000;
+
+    var parts = [];
+
+    var hours = ticks / ticksPerHour;
+    hours = Math.floor(hours);
+
+    if (hours) {
+        parts.push(hours);
+    }
+
+    ticks -= (hours * ticksPerHour);
+
+    var minutes = ticks / ticksPerMinute;
+    minutes = Math.floor(minutes);
+
+    ticks -= (minutes * ticksPerMinute);
+
+    if (minutes < 10 && hours) {
+        minutes = '0' + minutes;
+    }
+    parts.push(minutes);
+
+    var seconds = ticks / ticksPerSecond;
+    seconds = Math.floor(seconds);
+
+    if (seconds < 10) {
+        seconds = '0' + seconds;
+    }
+    parts.push(seconds);
+
+    return parts.join(':');
 }
 
 function getRatingHtml(item) {
@@ -2451,80 +2531,3 @@ function getRatingHtml(item) {
 
     return html;
 }
-
-function initRequire(customPaths) {
-
-    console.log('Initializing requirejs');
-
-    var bowerPath = "bower_components";
-    var embyWebComponentsBowerPath = bowerPath + '/emby-webcomponents';
-
-    var paths = {
-        datetime: embyWebComponentsBowerPath + "/datetime",
-        browserdeviceprofile: embyWebComponentsBowerPath + "/browserdeviceprofile",
-        browser: embyWebComponentsBowerPath + "/browser",
-        qualityoptions: embyWebComponentsBowerPath + "/qualityoptions",
-        isMobile: "bower_components/isMobile/isMobile.min",
-        events: 'bower_components/emby-apiclient/events',
-        credentialprovider: 'bower_components/emby-apiclient/credentials',
-        apiclient: 'bower_components/emby-apiclient/apiclient',
-        connectservice: 'bower_components/emby-apiclient/connectservice',
-        serverdiscovery: "bower_components/emby-apiclient/serverdiscovery",
-        wakeonlan: "bower_components/emby-apiclient/wakeonlan",
-        fetchhelper: embyWebComponentsBowerPath + "/fetchhelper"
-    };
-
-    var urlArgs = "t=" + new Date().getTime();
-
-    var sha1Path = bowerPath + "/cryptojslib/components/sha1-min";
-    var md5Path = bowerPath + "/cryptojslib/components/md5-min";
-    var shim = {};
-
-    shim[sha1Path] = {
-        deps: [bowerPath + "/cryptojslib/components/core-min"]
-    };
-
-    shim[md5Path] = {
-        deps: [bowerPath + "/cryptojslib/components/core-min"]
-    };
-
-    var config = {
-
-        waitSeconds: 30,
-        urlArgs: urlArgs,
-
-        paths: paths,
-        map: {
-            '*': {
-                'css': embyWebComponentsBowerPath + '/requirecss',
-                'html': embyWebComponentsBowerPath + '/requirehtml'
-            }
-        },
-        shim: shim
-    };
-
-    var baseRoute = window.location.href.split('?')[0].replace('/index.html', '');
-    if (baseRoute.lastIndexOf('/') == baseRoute.length - 1) {
-        baseRoute = baseRoute.substring(0, baseRoute.length - 1);
-    }
-
-    console.log('Setting require baseUrl to ' + baseRoute);
-
-    config.baseUrl = baseRoute;
-
-    requirejs.config(config);
-
-    define("cryptojs-sha1", [sha1Path]);
-    define("cryptojs-md5", [md5Path]);
-}
-
-function startApp() {
-
-    initRequire();
-
-    require(['fetchhelper'], function (fetchhelper) {
-        window.fetchhelper = fetchhelper;
-    });
-}
-
-startApp();
