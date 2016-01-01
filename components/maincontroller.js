@@ -1,4 +1,4 @@
-﻿define(['datetime', 'embyactions', '//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js', '//www.gstatic.com/cast/sdk/libs/mediaplayer/1.0.0/media_player.js'], function (datetime, embyActions) {
+﻿define(['datetime', 'embyactions', '//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js', '//www.gstatic.com/cast/sdk/libs/mediaplayer/1.0.0/media_player.js', 'cryptojs-sha1'], function (datetime, embyActions) {
 
     window.mediaManager = new cast.receiver.MediaManager(window.mediaElement);
     setInterval(updateTimeOfDay, 40000);
