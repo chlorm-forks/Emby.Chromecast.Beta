@@ -90,17 +90,11 @@
         this.stopDynamicContent();
 
         if (!$scope.userId) {
-            console.log("null userId");
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            throw new Error("null userId");
         }
 
         if (!$scope.serverAddress) {
-            console.log("null serverAddress");
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            throw new Error("null serverAddress");
         }
 
         var url = getUrl($scope.serverAddress, "Sessions/Playing");
@@ -112,29 +106,24 @@
 
         restartPingInterval($scope, options);
 
-        return new Promise(function (resolve, reject) {
+        return fetchhelper.ajax({
 
-            $http.post(url, options,
-            {
-                headers: getSecurityHeaders($scope.accessToken, $scope.userId)
-            }).finally(resolve);
+            url: url,
+            headers: getSecurityHeaders($scope.accessToken, $scope.userId),
+            type: 'POST',
+            data: JSON.stringify(options),
+            contentType: 'application/json'
         });
     };
 
     factory.reportPlaybackProgress = function ($scope, options, reportToServer) {
 
         if (!$scope.userId) {
-            console.log("null userId");
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            throw new Error("null userId");
         }
 
         if (!$scope.serverAddress) {
-            console.log("null serverAddress");
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            throw new Error("null serverAddress");
         }
 
         broadcastToMessageBus({
@@ -153,10 +142,14 @@
         restartPingInterval($scope, options);
         lastTranscoderPing = new Date().getTime();
 
-        return $http.post(url, options,
-          {
-              headers: getSecurityHeaders($scope.accessToken, $scope.userId)
-          });
+        return fetchhelper.ajax({
+
+            url: url,
+            headers: getSecurityHeaders($scope.accessToken, $scope.userId),
+            type: 'POST',
+            data: JSON.stringify(options),
+            contentType: 'application/json'
+        });
     };
 
     factory.reportPlaybackStopped = function ($scope, options) {
@@ -164,17 +157,11 @@
         stopPingInterval();
 
         if (!$scope.userId) {
-            console.log("null userId");
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            throw new Error("null userId");
         }
 
         if (!$scope.serverAddress) {
-            console.log("null serverAddress");
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            throw new Error("null serverAddress");
         }
 
         var url = getUrl($scope.serverAddress, "Sessions/Playing/Stopped");
@@ -184,26 +171,24 @@
             data: getSenderReportingData($scope, options)
         });
 
-        return $http.post(url, options,
-          {
-              headers: getSecurityHeaders($scope.accessToken, $scope.userId)
-          });
+        return fetchhelper.ajax({
+
+            url: url,
+            headers: getSecurityHeaders($scope.accessToken, $scope.userId),
+            type: 'POST',
+            data: JSON.stringify(options),
+            contentType: 'application/json'
+        });
     };
 
     factory.pingTranscoder = function ($scope, options) {
 
         if (!$scope.userId) {
-            console.log("null userId");
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            throw new Error("null userId");
         }
 
         if (!$scope.serverAddress) {
-            console.log("null serverAddress");
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            throw new Error("null serverAddress");
         }
 
         var now = new Date().getTime();
@@ -218,10 +203,14 @@
         var url = getUrl($scope.serverAddress, "Sessions/Playing/Ping");
         lastTranscoderPing = new Date().getTime();
 
-        return $http.post(url, options,
-          {
-              headers: getSecurityHeaders($scope.accessToken, $scope.userId)
-          });
+        return fetchhelper.ajax({
+
+            url: url,
+            headers: getSecurityHeaders($scope.accessToken, $scope.userId),
+            type: 'POST',
+            data: JSON.stringify(options),
+            contentType: 'application/json'
+        });
     };
 
     var backdropInterval;
@@ -360,8 +349,13 @@
     };
 
     factory.getSubtitle = function ($scope, subtitleStreamUrl) {
-        return $http.get(subtitleStreamUrl, {
-            headers: getSecurityHeaders($scope.accessToken, $scope.userId)
+
+        return fetchhelper.ajax({
+
+            url: subtitleStreamUrl,
+            headers: getSecurityHeaders($scope.accessToken, $scope.userId),
+            type: 'GET',
+            dataType: 'json'
         });
     };
 

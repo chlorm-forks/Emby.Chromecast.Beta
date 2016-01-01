@@ -562,7 +562,6 @@
             }
 
         }, broadcastConnectionErrorMessage);
-
     }
 
     function validatePlaybackInfoResult(result) {
