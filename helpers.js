@@ -880,7 +880,7 @@ function setArtist(name) {
     $scope.artist = name;
     setInnerHTML('.media-artist', name, true);
 }
-function setAlbumTItle(name) {
+function setAlbumTitle(name) {
 
     $scope.albumTitle = name;
     var elems = document.querySelectorAll('.media-album-title');
