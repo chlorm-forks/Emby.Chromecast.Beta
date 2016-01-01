@@ -398,7 +398,7 @@
             posterUrl = $scope.serverAddress + '/mediabrowser/Items/' + data.Id + '/Images/Primary?tag=' + (data.ImageTags.Primary);
         }
 
-        $scope.poster = posterUrl;
+        setPoster(posterUrl);
         fallBackBackdropImg($scope, backdropUrl);
         setMediaTitle(isSeries ? data.SeriesName : data.Name);
         setSecondaryTitle(isSeries ? data.Name : '');
@@ -406,7 +406,6 @@
         if (data.MediaType == "Audio" && data.Artists && data.Album) {
             setArtist(data.Artists[0]);
             setAlbumTitle(data.Album);
-            $scope.showPoster = true;
         }
 
         setAppStatus('backdrop');

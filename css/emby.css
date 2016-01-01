@@ -544,7 +544,7 @@ body {
             top: 7px;
         }
 
-#media-poster {
+.media-poster {
     position: fixed;
     bottom: 32px;
     left: 64px;

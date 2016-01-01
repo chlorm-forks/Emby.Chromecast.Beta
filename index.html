@@ -21,7 +21,7 @@
     <div id="backdrop" ng-style="{ backgroundImage : 'url(' + backdrop + ')' }">
         <img class="spinner" src="img/spinner.png" />
         <div class="gradient">
-            <img id="media-poster" ng-src="{{poster}}" ng-show="showPoster" />
+            <img class="media-poster" />
             <h2>
                 <span class="media-title"></span>
                 <span class="media-secondary-title"></span>
@@ -31,7 +31,7 @@
         </div>
     </div>
     <div id="controls">
-        <img id="media-poster" ng-src="{{poster}}" />
+        <img class="media-poster" />
         <div id="right-controls">
             <h1>
                 <i class="glyphicon glyphicon-pause" ng-show="paused"></i>

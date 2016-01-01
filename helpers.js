@@ -145,7 +145,7 @@ function resetPlaybackScope($scope) {
 
     $scope.startPositionTicks = 0;
     $scope.runtimeTicks = 0;
-    $scope.poster = '';
+    setPoster('');
     $scope.backdrop = '';
     $scope.waitingbackdrop = '';
     setMediaTitle('');
@@ -160,8 +160,6 @@ function resetPlaybackScope($scope) {
     $scope.subtitleStreamIndex = null;
     $scope.mediaSourceId = '';
     $scope.PlaybackMediaSource = null;
-
-    $scope.showPoster = false;
 
     $scope.playMethod = '';
     $scope.canSeek = false;
@@ -905,6 +903,21 @@ function setPlayedPercentage(value) {
     $scope.playedPercentage = value;
     document.querySelector('.itemProgressBar').value = value || 0;
 }
+function setPoster(src) {
+    $scope.poster = src;
+    var elems = document.querySelectorAll('.media-poster');
+    for (var i = 0, length = elems.length; i < length; i++) {
+
+        elems[i].src = src || ''
+
+        if (src) {
+            elems[i].classList.remove('hide');
+        } else {
+            elems[i].classList.add('hide');
+        }
+    }
+}
+
 function extend(target, source) {
     for (var i in source) {
         target[i] = source[i];
