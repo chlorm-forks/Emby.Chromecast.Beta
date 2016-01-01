@@ -371,7 +371,7 @@
 
         clearTimeouts();
 
-        angular.extend($scope, customData);
+        extend($scope, customData);
 
         var data = serverItem;
 

@@ -504,7 +504,7 @@
         }).then(function (data) {
 
             // Attach the custom properties we created like userId, serverAddress, itemId, etc
-            angular.extend(data, item);
+            extend(data, item);
 
             playItemInternal(data, options);
 

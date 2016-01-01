@@ -796,7 +796,7 @@ function getItemsForPlayback(serverAddress, accessToken, userId, query) {
     var url = getUrl(serverAddress, "Users/" + userId + "/Items");
 
     return fetchhelper.ajax({
-        
+
         url: url,
         headers: getSecurityHeaders(accessToken, userId),
         query: query,
@@ -982,4 +982,9 @@ function getMiscInfoHtml(item, datetime) {
 function setAppStatus(status) {
     $scope.status = status;
     document.body.className = status;
+}
+function extend(target, source) {
+    for (var i in source) {
+        target[i] = source[i];
+    }
 }
