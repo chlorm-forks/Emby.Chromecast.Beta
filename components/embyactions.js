@@ -249,8 +249,11 @@
 
         var url = getUrl(serverAddress, "Users/" + userId + "/Items");
 
-        $http.get(url, {
+        fetchhelper.ajax({
+            url: url,
             headers: getSecurityHeaders(accessToken, userId),
+            dataType: 'json',
+            type: 'GET',
             params: {
                 SortBy: "Random",
                 IncludeItemTypes: "Movie,Series",
@@ -263,6 +266,7 @@
 
                 Limit: 1
             }
+
         }).then(function (result) {
             var item = result.Items[0];
 
