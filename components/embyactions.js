@@ -434,9 +434,9 @@
                 $scope.paused = false;
             });
 
-        }, 1000).then(function () {
             setControls($scope);
-        });
+
+        }, 1000);
     };
 
     factory.play = function ($scope, event) {

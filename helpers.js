@@ -186,7 +186,7 @@ function getSenderReportingData($scope, reportingData) {
 
     var state = {
         ItemId: reportingData.ItemId,
-        PlayState: angular.extend({}, reportingData),
+        PlayState: extend({}, reportingData),
         QueueableMediaTypes: reportingData.QueueableMediaTypes
     };
 
@@ -987,4 +987,5 @@ function extend(target, source) {
     for (var i in source) {
         target[i] = source[i];
     }
+    return target;
 }
