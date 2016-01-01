@@ -23,7 +23,7 @@
         <div class="gradient">
             <img id="media-poster" ng-src="{{poster}}" ng-show="showPoster" />
             <h2>
-                <span class="media-title">{{mediaTitle}}</span>
+                <span class="media-title"></span>
                 <span class="media-secondary-title" ng-show="secondaryTitle">{{secondaryTitle}}</span>
                 <span class="media-artist" ng-show="artist">{{artist}}</span>
                 <span class="media-album-title" ng-show="albumTitle"><em>{{albumTitle}}</em></span>
@@ -36,7 +36,7 @@
             <h1>
                 <i class="glyphicon glyphicon-pause" ng-show="paused"></i>
                 <i class="glyphicon glyphicon-play" ng-hide="paused"></i>
-                <span class="media-title">{{mediaTitle}}</span>
+                <span class="media-title"></span>
                 <span class="media-secondary-title" ng-show="secondaryTitle">{{secondaryTitle}}</span>
                 <span class="media-artist" ng-show="artist">{{artist}}</span>
                 <span class="media-album-title" ng-show="albumTitle"><em>(from the album "{{albumTitle}}")</em></span>
@@ -51,7 +51,7 @@
         </div>
     </div>
     <div class="detailContent">
-        <div class="timeOfDay"><span>{{timePrefix}}</span><span class="timeSuffix">{{timeSuffix}}</span></div>
+        <div class="timeOfDay"><span class="timePrefix"></span> <span class="timeSuffix"></span></div>
 		
         <div class="detailImage" ng-style="{ backgroundImage : 'url(' + detailImageUrl + ')' }">
             <div id="playedIndicator"></div>
@@ -60,10 +60,10 @@
         </div>
 		
         <div class="detailInfo">
-            <p class="displayNameContainer"><span class="displayName">{{displayName}}</span><span id="miscInfo"></span></p>
+            <p class="displayNameContainer"><span class="displayName"></span><span id="miscInfo"></span></p>
             <div id="detailRating"></div>
-            <p class="genres">{{genres}}</p>
-            <p class="overview">{{overview}}</p>
+            <p class="genres"></p>
+            <p class="overview"></p>
         </div>
     </div>
     <div class="detailLogo" ng-style="{ backgroundImage : 'url(' + detailLogoUrl + ')' }"></div>

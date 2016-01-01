@@ -148,7 +148,7 @@ function resetPlaybackScope($scope) {
     $scope.poster = '';
     $scope.backdrop = '';
     $scope.waitingbackdrop = '';
-    $scope.mediaTitle = '';
+    setMediaTitle('');
     $scope.secondaryTitle = '';
     $scope.currentTime = 0;
     $scope.mediaType = '';
@@ -174,9 +174,9 @@ function resetPlaybackScope($scope) {
     // Detail content
     $scope.detailLogoUrl = '';
     $scope.detailImageUrl = '';
-    $scope.overview = '';
-    $scope.genres = '';
-    $scope.displayName = '';
+    setOverview('');
+    setGenres('');
+    setDisplayName('');
     document.getElementById('miscInfo').innerHTML = '';
     document.getElementById('playedIndicator').style.display = 'none';
     $scope.hasPlayedPercentage = false;
@@ -434,8 +434,8 @@ function updateTimeOfDay() {
         time = text;
     }
 
-    document.querySelector('.timePrefix').innerHTML = time;
-    document.querySelector('.timeSuffix').innerHTML = suffix;
+    setInnerHTML('.timePrefix', time);
+    setInnerHTML('.timeSuffix', suffix);
 }
 
 function getSecurityHeaders(accessToken, userId) {
@@ -842,6 +842,28 @@ function getMiscInfoHtml(item, datetime) {
 function setAppStatus(status) {
     $scope.status = status;
     document.body.className = status;
+}
+function setDisplayName(name) {
+    $scope.displayName = name;
+    document.querySelector('.displayName').innerHTML = name;
+}
+function setGenres(name) {
+    $scope.genres = name;
+    document.querySelector('.genres').innerHTML = name;
+}
+function setOverview(name) {
+    $scope.overview = name;
+    document.querySelector('.overview').innerHTML = name;
+}
+function setInnerHTML(selector, html) {
+    var elems = document.querySelectorAll(selector);
+    for (var i = 0, length = elems.length; i < length; i++) {
+        elems[i].innerHTML = html;
+    }
+}
+function setMediaTitle(name) {
+    $scope.mediaTitle = name;
+    setInnerHTML('.media-title', name);
 }
 function extend(target, source) {
     for (var i in source) {

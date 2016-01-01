@@ -292,9 +292,9 @@
             $scope.waitingbackdrop = backdropUrl;
 
             $scope.detailLogoUrl = getLogoUrl(item, serverAddress) || '';
-            $scope.overview = item.Overview || '';
-            $scope.genres = item.Genres.join(' / ');
-            $scope.displayName = getDisplayName(item);
+            setOverview(item.Overview || '');
+            setGenres(item.Genres.join(' / '));
+            setDisplayName(getDisplayName(item));
             document.getElementById('miscInfo').innerHTML = getMiscInfoHtml(item, datetime) || '';
             document.getElementById('detailRating').innerHTML = getRatingHtml(item);
 
@@ -399,7 +399,7 @@
 
         $scope.poster = posterUrl;
         fallBackBackdropImg($scope, backdropUrl);
-        $scope.mediaTitle = isSeries ? data.SeriesName : data.Name;
+        setMediaTitle(isSeries ? data.SeriesName : data.Name);
         $scope.secondaryTitle = isSeries ? data.Name : '';
 
         if (data.MediaType == "Audio" && data.Artists && data.Album) {
