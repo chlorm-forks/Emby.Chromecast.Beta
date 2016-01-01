@@ -1,4 +1,4 @@
-﻿define(['datetime', 'embyactions', '//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js', '//www.gstatic.com/cast/sdk/libs/mediaplayer/1.0.0/media_player.js', 'cryptojs-sha1'], function (datetime, embyActions) {
+﻿define(['datetime', 'embyactions', 'browserdeviceprofile', '//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js', '//www.gstatic.com/cast/sdk/libs/mediaplayer/1.0.0/media_player.js', 'cryptojs-sha1'], function (datetime, embyActions, browserdeviceprofile) {
 
     window.mediaManager = new cast.receiver.MediaManager(window.mediaElement);
     setInterval(updateTimeOfDay, 40000);
@@ -509,6 +509,23 @@
             playItemInternal(data, options);
 
         }, broadcastConnectionErrorMessage);
+    }
+
+    function getDeviceProfile() {
+
+        var profile = browserdeviceprofile;
+
+        profile.MaxStreamingBitrate = DefaultMaxBitrate;
+        profile.MaxStaticBitrate = DefaultMaxBitrate;
+        profile.MusicStreamingTranscodingBitrate = 192000;
+
+        profile.SubtitleProfiles = [];
+        profile.SubtitleProfiles.push({
+            Format: 'js',
+            Method: 'External'
+        });
+
+        return profile;
     }
 
     function playItemInternal(item, options) {
