@@ -24,9 +24,9 @@
             <img id="media-poster" ng-src="{{poster}}" ng-show="showPoster" />
             <h2>
                 <span class="media-title"></span>
-                <span class="media-secondary-title" ng-show="secondaryTitle">{{secondaryTitle}}</span>
-                <span class="media-artist" ng-show="artist">{{artist}}</span>
-                <span class="media-album-title" ng-show="albumTitle"><em>{{albumTitle}}</em></span>
+                <span class="media-secondary-title"></span>
+                <span class="media-artist"></span>
+                <span class="media-album-title"><em></em></span>
             </h2>
         </div>
     </div>
@@ -37,9 +37,9 @@
                 <i class="glyphicon glyphicon-pause" ng-show="paused"></i>
                 <i class="glyphicon glyphicon-play" ng-hide="paused"></i>
                 <span class="media-title"></span>
-                <span class="media-secondary-title" ng-show="secondaryTitle">{{secondaryTitle}}</span>
-                <span class="media-artist" ng-show="artist">{{artist}}</span>
-                <span class="media-album-title" ng-show="albumTitle"><em>(from the album "{{albumTitle}}")</em></span>
+                <span class="media-secondary-title"></span>
+                <span class="media-artist"></span>
+                <span class="media-album-title musicTitle"><em></em></span>
             </h1>
             <div id="player-controls-left"><span class="player-time player-current-time">{{( (startPositionTicks * 1) + (currentTime * 10000000)) | displayTime}}</span></div>
             <div id="player-controls-right"><span class="player-time player-duration">{{runtimeTicks | displayTime}}</span></div>
@@ -56,7 +56,7 @@
         <div class="detailImage" ng-style="{ backgroundImage : 'url(' + detailImageUrl + ')' }">
             <div id="playedIndicator"></div>
 			
-            <div class="detailImageProgressContainer" ng-show="hasPlayedPercentage"><progress class="itemProgressBar" min="0" max="100" value="{{playedPercentage}}"></progress></div>
+            <div class="detailImageProgressContainer" ng-show="hasPlayedPercentage"><progress class="itemProgressBar" min="0" max="100"></progress></div>
         </div>
 		
         <div class="detailInfo">

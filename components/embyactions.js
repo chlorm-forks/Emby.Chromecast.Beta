@@ -316,13 +316,14 @@
 
             if (item.UserData.PlayedPercentage && item.UserData.PlayedPercentage < 100 && !item.IsFolder) {
                 $scope.hasPlayedPercentage = false;
-                $scope.playedPercentage = item.UserData.PlayedPercentage;
+                setPlayedPercentage(item.UserData.PlayedPercentage);
 
                 detailImageUrl += "&PercentPlayed=" + parseInt(item.UserData.PlayedPercentage);
 
             } else {
                 $scope.hasPlayedPercentage = false;
                 $scope.playedPercentage = 0;
+                setPlayedPercentage(0);
             }
 
             $scope.detailImageUrl = detailImageUrl;
@@ -400,11 +401,11 @@
         $scope.poster = posterUrl;
         fallBackBackdropImg($scope, backdropUrl);
         setMediaTitle(isSeries ? data.SeriesName : data.Name);
-        $scope.secondaryTitle = isSeries ? data.Name : '';
+        setSecondaryTitle(isSeries ? data.Name : '');
 
         if (data.MediaType == "Audio" && data.Artists && data.Album) {
-            $scope.artist = data.Artists[0];
-            $scope.albumTitle = data.Album;
+            setArtist(data.Artists[0]);
+            setAlbumTitle(data.Album);
             $scope.showPoster = true;
         }
 

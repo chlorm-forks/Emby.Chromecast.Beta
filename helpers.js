@@ -149,12 +149,12 @@ function resetPlaybackScope($scope) {
     $scope.backdrop = '';
     $scope.waitingbackdrop = '';
     setMediaTitle('');
-    $scope.secondaryTitle = '';
+    setSecondaryTitle('');
     $scope.currentTime = 0;
     $scope.mediaType = '';
     $scope.itemId = '';
-    $scope.artist = '';
-    $scope.albumTitle = '';
+    setArtist('');
+    setAlbumTitle('');
 
     $scope.audioStreamIndex = null;
     $scope.subtitleStreamIndex = null;
@@ -180,7 +180,7 @@ function resetPlaybackScope($scope) {
     document.getElementById('miscInfo').innerHTML = '';
     document.getElementById('playedIndicator').style.display = 'none';
     $scope.hasPlayedPercentage = false;
-    $scope.playedPercentage = 0;
+    setPlayedPercentage(0);
 }
 
 function setMetadata(item, metadata, datetime) {
@@ -845,25 +845,65 @@ function setAppStatus(status) {
 }
 function setDisplayName(name) {
     $scope.displayName = name;
-    document.querySelector('.displayName').innerHTML = name;
+    document.querySelector('.displayName').innerHTML = name || '';
 }
 function setGenres(name) {
     $scope.genres = name;
-    document.querySelector('.genres').innerHTML = name;
+    document.querySelector('.genres').innerHTML = name || '';
 }
 function setOverview(name) {
     $scope.overview = name;
-    document.querySelector('.overview').innerHTML = name;
+    document.querySelector('.overview').innerHTML = name || '';
 }
-function setInnerHTML(selector, html) {
+function setInnerHTML(selector, html, autoHide) {
     var elems = document.querySelectorAll(selector);
     for (var i = 0, length = elems.length; i < length; i++) {
-        elems[i].innerHTML = html;
+
+        elems[i].innerHTML = html || ''
+
+        if (autoHide) {
+            if (html) {
+                elems[i].classList.remove('hide');
+            } else {
+                elems[i].classList.add('hide');
+            }
+        }
     }
 }
 function setMediaTitle(name) {
     $scope.mediaTitle = name;
     setInnerHTML('.media-title', name);
+}
+function setSecondaryTitle(name) {
+    $scope.secondaryTitle = name;
+    setInnerHTML('.media-secondary-title', name, true);
+}
+function setArtist(name) {
+    $scope.artist = name;
+    setInnerHTML('.media-artist', name, true);
+}
+function setAlbumTItle(name) {
+
+    $scope.albumTitle = name;
+    var elems = document.querySelectorAll('.media-album-title');
+    for (var i = 0, length = elems.length; i < length; i++) {
+
+        if (elems[i].classList.contains('musicTitle')) {
+            elems[i].innerHTML = '(from the album "' + (html || '') + '")';
+        } else {
+            elems[i].innerHTML = html || ''
+        }
+
+        if (html) {
+            elems[i].classList.remove('hide');
+        } else {
+            elems[i].classList.add('hide');
+        }
+    }
+}
+function setPlayedPercentage(value) {
+    $scope.playedPercentage = value;
+    document.querySelector('.itemProgressBar').value = value || 0;
 }
 function extend(target, source) {
     for (var i in source) {
