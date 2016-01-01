@@ -887,12 +887,12 @@ function setAlbumTitle(name) {
     for (var i = 0, length = elems.length; i < length; i++) {
 
         if (elems[i].classList.contains('musicTitle')) {
-            elems[i].innerHTML = '(from the album "' + (html || '') + '")';
+            elems[i].innerHTML = '(from the album "' + (name || '') + '")';
         } else {
-            elems[i].innerHTML = html || ''
+            elems[i].innerHTML = name || ''
         }
 
-        if (html) {
+        if (name) {
             elems[i].classList.remove('hide');
         } else {
             elems[i].classList.add('hide');
