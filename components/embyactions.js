@@ -4,34 +4,32 @@
     var controlsPromise, delayStartPromise, closeAppPromise;
 
     var setControls = function ($scope) {
-        $timeout.cancel(controlsPromise);
-        controlsPromise = $timeout(function () {
+        clearTimeout(controlsPromise);
+        controlsPromise = setTimeout(function () {
             if ($scope.status == 'playing-with-controls') {
-                $scope.status = 'playing';
+                setAppStatus('playing');
             }
         }, 8000);
     };
 
     var setApplicationClose = function () {
-        $timeout.cancel(closeAppPromise);
-        closeAppPromise = $timeout(function () {
-            window.close(); t
+        clearTimeout(closeAppPromise);
+        closeAppPromise = setTimeout(function () {
+            window.close();
         }, 3600000, false);
     };
 
     var clearTimeouts = function () {
-        $timeout.cancel(controlsPromise);
-        $timeout.cancel(closeAppPromise);
-        $timeout.cancel(delayStartPromise);
+        clearTimeout(controlsPromise);
+        clearTimeout(closeAppPromise);
+        clearTimeout(delayStartPromise);
     };
 
     var fallBackBackdropImg = function ($scope, src) {
         if (!src) {
             // Use try/catch in case an [$rootScope:inprog] is thrown
             try {
-                $scope.$apply(function () {
-                    $scope.backdrop = "img/bg.jpg";
-                });
+                $scope.backdrop = "img/bg.jpg";
 
             }
             catch (err) {
@@ -42,9 +40,7 @@
 
         var setBackdrop = function () {
             var imageSrc = this.src;
-            $scope.$apply(function () {
-                $scope.backdrop = imageSrc;
-            });
+            $scope.backdrop = imageSrc;
         };
 
         var loadElement = document.createElement('img');
@@ -54,7 +50,7 @@
         });
 
         loadElement.addEventListener('load', setBackdrop);
-        $timeout(function () {
+        setTimeout(function () {
             loadElement.removeEventListener('load', setBackdrop);
         }, 30000);
     };
@@ -67,7 +63,7 @@
         stopPingInterval();
 
         if (reportingParams.PlayMethod == 'Transcode') {
-            pingInterval = $interval(function () {
+            pingInterval = setInterval(function () {
                 factory.pingTranscoder($scope, {
                     PlaySessionId: reportingParams.PlaySessionId
                 });
@@ -80,7 +76,7 @@
         var current = pingInterval;
 
         if (current) {
-            $interval.cancel(current);
+            clearInterval(current);
             pingInterval = null;
         }
     }
@@ -231,7 +227,7 @@
     var backdropInterval;
     function clearBackropInterval() {
         if (backdropInterval) {
-            $interval.cancel(backdropInterval);
+            clearInterval(backdropInterval);
             backdropInterval = null;
         }
     }
@@ -242,7 +238,7 @@
 
         setRandomUserBackdrop($scope, serverAddress, accessToken, userId);
 
-        backdropInterval = $interval(function () {
+        backdropInterval = setInterval(function () {
             setRandomUserBackdrop($scope, serverAddress, accessToken, userId);
         }, 30000);
     }
@@ -267,7 +263,7 @@
 
                 Limit: 1
             }
-        }).success(function (result) {
+        }).then(function (result) {
             var item = result.Items[0];
 
             var backdropUrl = '';
@@ -276,10 +272,7 @@
                 backdropUrl = getBackdropUrl(item, serverAddress) || '';
             }
 
-            $timeout(function () {
-                $scope.waitingbackdrop = backdropUrl;
-            }, 0);
-
+            $scope.waitingbackdrop = backdropUrl;
         });
     }
 
@@ -301,8 +294,8 @@
         var backdropUrl = getBackdropUrl(item, serverAddress) || '';
         var detailImageUrl = getPrimaryImageUrl(item, serverAddress) || '';
 
-        $timeout(function () {
-            $scope.status = 'details';
+        setTimeout(function () {
+            setAppStatus('details');
             $scope.waitingbackdrop = backdropUrl;
 
             $scope.detailLogoUrl = getLogoUrl(item, serverAddress) || '';
@@ -417,7 +410,7 @@
             $scope.showPoster = true;
         }
 
-        $scope.status = 'backdrop';
+        setAppStatus('backdrop');
         $scope.mediaType = data.MediaType;
 
         $scope.detailLogoUrl = getLogoUrl(data, $scope.serverAddress) || '';
@@ -426,13 +419,13 @@
     };
 
     factory.delayStart = function ($scope) {
-        delayStartPromise = $timeout(function () {
+        delayStartPromise = setTimeout(function () {
 
             factory.reportPlaybackStart($scope, getReportingParams($scope)).then(function () {
                 window.mediaElement.play();
-                $scope.status = 'playing-with-controls';
+                setAppStatus('playing-with-controls');
                 if ($scope.mediaType == "Audio") {
-                    $scope.status = "audio";
+                    setAppStatus('audio');
                 }
                 $scope.paused = false;
             });
@@ -443,20 +436,18 @@
     };
 
     factory.play = function ($scope, event) {
-        $scope.$apply(function () {
-            $scope.paused = false;
-        });
+        $scope.paused = false;
 
         if ($scope.status == 'backdrop' || $scope.status == 'playing-with-controls' || $scope.status == 'playing' || $scope.status == 'audio') {
             clearTimeouts();
-            $timeout(function () {
+            setTimeout(function () {
 
                 var startTime = new Date();
                 window.mediaElement.play();
                 window.mediaElement.pause();
                 while (typeof (window.mediaElement.buffered) === 'undefined' || window.mediaElement.buffered.length === 0) {
                     if ((new Date()) - startTime > 25000) {
-                        $scope.status = 'waiting';
+                        setAppStatus('waiting');
                         factory.setApplicationClose();
                         return;
                     }
@@ -464,9 +455,9 @@
 
                 window.mediaManager.defaultOnPlay(event);
 
-                $scope.status = 'playing-with-controls';
+                setAppStatus('playing-with-controls');
                 if ($scope.mediaType == "Audio") {
-                    $scope.status = "audio";
+                    setAppStatus('audio');
                 }
 
             }, 20).then(function () {
@@ -476,23 +467,21 @@
     };
 
     factory.pause = function ($scope) {
-        $scope.$apply(function () {
-            $scope.status = 'playing-with-controls';
-            if ($scope.mediaType == "Audio") {
-                $scope.status = "audio";
-            }
-            $scope.paused = true;
-            $scope.currentTime = window.mediaElement.currentTime;
-            clearTimeouts();
-        });
+        setAppStatus('playing-with-controls');
+        if ($scope.mediaType == "Audio") {
+            setAppStatus('audio');
+        }
+        $scope.paused = true;
+        $scope.currentTime = window.mediaElement.currentTime;
+        clearTimeouts();
     };
 
     factory.stop = function ($scope) {
 
-        $timeout(function () {
+        setTimeout(function () {
 
             clearTimeouts();
-            $scope.status = 'waiting';
+            setAppStatus('waiting');
             setApplicationClose();
 
         }, 20);
@@ -500,50 +489,50 @@
 
     factory.getPlaybackInfo = function (item, maxBitrate, deviceProfile, startPosition, mediaSourceId, audioStreamIndex, subtitleStreamIndex, liveStreamId) {
 
-        return new Promise(function (resolve, reject) {
-            if (!item.userId) {
-                console.log("null userId");
-                resolve();
-                return;
-            }
+        if (!item.userId) {
+            throw new Error("null userId");
+            return;
+        }
 
-            if (!item.serverAddress) {
-                console.log("null serverAddress");
-                resolve();
-                return;
-            }
+        if (!item.serverAddress) {
+            throw new Error("null serverAddress");
+            return;
+        }
 
-            var postData = {
-                DeviceProfile: deviceProfile
-            };
+        var postData = {
+            DeviceProfile: deviceProfile
+        };
 
-            var query = {
-                UserId: item.userId,
-                StartTimeTicks: startPosition || 0,
-                MaxStreamingBitrate: maxBitrate
-            };
+        var query = {
+            UserId: item.userId,
+            StartTimeTicks: startPosition || 0,
+            MaxStreamingBitrate: maxBitrate
+        };
 
-            if (audioStreamIndex != null) {
-                query.AudioStreamIndex = audioStreamIndex;
-            }
-            if (subtitleStreamIndex != null) {
-                query.SubtitleStreamIndex = subtitleStreamIndex;
-            }
-            if (mediaSourceId) {
-                query.MediaSourceId = mediaSourceId;
-            }
-            if (liveStreamId) {
-                query.LiveStreamId = liveStreamId;
-            }
+        if (audioStreamIndex != null) {
+            query.AudioStreamIndex = audioStreamIndex;
+        }
+        if (subtitleStreamIndex != null) {
+            query.SubtitleStreamIndex = subtitleStreamIndex;
+        }
+        if (mediaSourceId) {
+            query.MediaSourceId = mediaSourceId;
+        }
+        if (liveStreamId) {
+            query.LiveStreamId = liveStreamId;
+        }
 
-            var url = getUrl(item.serverAddress, 'Items/' + item.Id + '/PlaybackInfo');
+        var url = getUrl(item.serverAddress, 'Items/' + item.Id + '/PlaybackInfo');
 
-            $http.post(url, postData,
-              {
-                  headers: getSecurityHeaders(item.accessToken, item.userId),
-                  params: query
+        return fetchhelper.ajax({
 
-              }).success(resolve).error(reject);
+            url: url,
+            headers: getSecurityHeaders(item.accessToken, item.userId),
+            query: query,
+            type: 'POST',
+            dataType: 'json',
+            data: JSON.stringify(postData),
+            contentType: 'application/json'
         });
     };
 

@@ -155,6 +155,174 @@ function getDeviceProfile() {
     return profile;
 }
 
+function getReportingParams($scope) {
+
+    var positionTicks = window.mediaElement.currentTime * 10000000;
+
+    if (!$scope.canClientSeek) {
+
+        positionTicks += ($scope.startPositionTicks || 0);
+    }
+
+    return {
+        PositionTicks: positionTicks,
+        IsPaused: window.mediaElement.paused,
+        IsMuted: window.VolumeInfo.IsMuted,
+        AudioStreamIndex: $scope.audioStreamIndex,
+        SubtitleStreamIndex: $scope.subtitleStreamIndex,
+        VolumeLevel: window.VolumeInfo.Level,
+        ItemId: $scope.itemId,
+        MediaSourceId: $scope.mediaSourceId,
+        QueueableMediaTypes: ['Audio', 'Video'],
+        CanSeek: $scope.canSeek,
+        PlayMethod: $scope.playMethod,
+        LiveStreamId: $scope.liveStreamId,
+        PlaySessionId: $scope.playSessionId,
+        RepeatMode: window.repeatMode
+    };
+}
+
+function getSenderReportingData($scope, reportingData) {
+
+    var state = {
+        ItemId: reportingData.ItemId,
+        PlayState: angular.extend({}, reportingData),
+        QueueableMediaTypes: reportingData.QueueableMediaTypes
+    };
+
+    // Don't want this here
+    state.PlayState.QueueableMediaTypes = null;
+    delete state.PlayState.QueueableMediaTypes;
+    state.PlayState.ItemId = null;
+    delete state.PlayState.ItemId;
+
+    state.NowPlayingItem = {
+
+        Id: reportingData.ItemId,
+        RunTimeTicks: $scope.runtimeTicks
+    };
+
+    var item = $scope.item;
+
+    if (item) {
+
+        var nowPlayingItem = state.NowPlayingItem;
+
+        nowPlayingItem.Chapters = item.Chapters || [];
+
+        // TODO: Fill these
+        var mediaSource = item.MediaSources.filter(function (m) {
+            return m.Id == reportingData.MediaSourceId;
+        })[0];
+
+        nowPlayingItem.MediaStreams = mediaSource ? mediaSource.MediaStreams : [];
+
+        nowPlayingItem.MediaType = item.MediaType;
+        nowPlayingItem.Type = item.Type;
+        nowPlayingItem.Name = item.Name;
+
+        nowPlayingItem.IndexNumber = item.IndexNumber;
+        nowPlayingItem.IndexNumberEnd = item.IndexNumberEnd;
+        nowPlayingItem.ParentIndexNumber = item.ParentIndexNumber;
+        nowPlayingItem.ProductionYear = item.ProductionYear;
+        nowPlayingItem.PremiereDate = item.PremiereDate;
+        nowPlayingItem.SeriesName = item.SeriesName;
+        nowPlayingItem.Album = item.Album;
+        nowPlayingItem.Artists = item.Artists;
+
+        var imageTags = item.ImageTags || {};
+
+        if (item.SeriesPrimaryImageTag) {
+
+            nowPlayingItem.PrimaryImageItemId = item.SeriesId;
+            nowPlayingItem.PrimaryImageTag = item.SeriesPrimaryImageTag;
+        }
+        else if (imageTags.Primary) {
+
+            nowPlayingItem.PrimaryImageItemId = item.Id;
+            nowPlayingItem.PrimaryImageTag = imageTags.Primary;
+        }
+        else if (item.AlbumPrimaryImageTag) {
+
+            nowPlayingItem.PrimaryImageItemId = item.AlbumId;
+            nowPlayingItem.PrimaryImageTag = item.AlbumPrimaryImageTag;
+        }
+        else if (item.SeriesPrimaryImageTag) {
+
+            nowPlayingItem.PrimaryImageItemId = item.SeriesId;
+            nowPlayingItem.PrimaryImageTag = item.SeriesPrimaryImageTag;
+        }
+
+        if (item.BackdropImageTags && item.BackdropImageTags.length) {
+
+            nowPlayingItem.BackdropItemId = item.Id;
+            nowPlayingItem.BackdropImageTag = item.BackdropImageTags[0];
+        }
+
+        if (imageTags.Thumb) {
+
+            nowPlayingItem.ThumbItemId = item.Id;
+            nowPlayingItem.ThumbImageTag = imageTags.Thumb;
+        }
+
+        if (imageTags.Logo) {
+
+            nowPlayingItem.LogoItemId = item.Id;
+            nowPlayingItem.LogoImageTag = imageTags.Logo;
+        }
+        else if (item.ParentLogoImageTag) {
+
+            nowPlayingItem.LogoItemId = item.ParentLogoItemId;
+            nowPlayingItem.LogoImageTag = item.ParentLogoImageTag;
+        }
+    }
+
+    return state;
+}
+
+function resetPlaybackScope($scope) {
+    setAppStatus('waiting');
+
+    $scope.startPositionTicks = 0;
+    $scope.runtimeTicks = 0;
+    $scope.poster = '';
+    $scope.backdrop = '';
+    $scope.waitingbackdrop = '';
+    $scope.mediaTitle = '';
+    $scope.secondaryTitle = '';
+    $scope.currentTime = 0;
+    $scope.mediaType = '';
+    $scope.itemId = '';
+    $scope.artist = '';
+    $scope.albumTitle = '';
+
+    $scope.audioStreamIndex = null;
+    $scope.subtitleStreamIndex = null;
+    $scope.mediaSourceId = '';
+    $scope.PlaybackMediaSource = null;
+
+    $scope.showPoster = false;
+
+    $scope.playMethod = '';
+    $scope.canSeek = false;
+    $scope.canClientSeek = false;
+
+    $scope.item = null;
+    $scope.liveStreamId = '';
+    $scope.playSessionId = '';
+
+    // Detail content
+    $scope.detailLogoUrl = '';
+    $scope.detailImageUrl = '';
+    $scope.overview = '';
+    $scope.genres = '';
+    $scope.displayName = '';
+    document.getElementById('miscInfo').innerHTML = '';
+    document.getElementById('playedIndicator').style.display = 'none';
+    $scope.hasPlayedPercentage = false;
+    $scope.playedPercentage = 0;
+}
+
 function setMetadata(item, metadata, datetime) {
 
     if (item.Type == 'Episode') {
@@ -811,3 +979,7 @@ function getMiscInfoHtml(item, datetime) {
     return miscInfo.join('&nbsp;&nbsp;&nbsp;&nbsp;');
 }
 
+function setAppStatus(status) {
+    $scope.status = status;
+    document.body.className = status;
+}
