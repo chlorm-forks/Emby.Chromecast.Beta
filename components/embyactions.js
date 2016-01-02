@@ -315,7 +315,6 @@
 
             } else {
                 setHasPlayedPercentage(false);
-                $scope.playedPercentage = 0;
                 setPlayedPercentage(0);
             }
 
