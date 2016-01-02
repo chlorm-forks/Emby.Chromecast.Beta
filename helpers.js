@@ -143,14 +143,14 @@ function getSenderReportingData($scope, reportingData) {
 function resetPlaybackScope($scope) {
     setAppStatus('waiting');
 
-    $scope.startPositionTicks = 0;
-    $scope.runtimeTicks = 0;
+    setStartPositionTicks(0);
+    setRuntimeTicks(0);
     setPoster('');
-    $scope.backdrop = '';
-    $scope.waitingbackdrop = '';
+    setBackdrop('');
+    setWaitingBackdrop('');
     setMediaTitle('');
     setSecondaryTitle('');
-    $scope.currentTime = 0;
+    setCurrentPlayingTime(0);
     $scope.mediaType = '';
     $scope.itemId = '';
     setArtist('');
@@ -915,6 +915,55 @@ function setPoster(src) {
         } else {
             elems[i].classList.add('hide');
         }
+    }
+}
+
+function setStartPositionTicks(value) {
+
+    $scope.startPositionTicks = value;
+
+    updateCurrentPlaybackProgress();
+}
+
+function setCurrentPlayingTime(value) {
+
+    $scope.currentTime = value;
+
+    updateCurrentPlaybackProgress();
+}
+
+function setRuntimeTicks(value) {
+
+    $scope.runtimeTicks = value;
+
+    document.querySelector('.player-duration').innerHTML = $scope.runtimeTicks ? datetime.getDisplayRunningTime($scope.runtimeTicks) : '';
+}
+
+function updateCurrentPlaybackProgress() {
+
+    var ticks = $scope.startPositionTicks || 0;
+    ticks += ($scope.currentTime || 0) * 10000000;
+
+    document.querySelector('.player-current-time').innerHTML = ticks ? datetime.getDisplayRunningTime(ticks) : '';
+}
+
+function setWaitingBackdrop(src) {
+    document.querySelector('#waiting-container-backdrop').style.backgroundImage = src ? 'url(' + src + ')' : ''
+}
+
+function setBackdrop(src) {
+    document.querySelector('#backdrop').style.backgroundImage = src ? 'url(' + src + ')' : ''
+}
+
+function setPaused(value) {
+    $scope.paused = value;
+
+    if (value) {
+        document.querySelector('.glyphicon-pause').classList.remove('hide');
+        document.querySelector('.glyphicon-play').classList.add('hide');
+    } else {
+        document.querySelector('.glyphicon-pause').classList.add('hide');
+        document.querySelector('.glyphicon-play').classList.remove('hide');
     }
 }
 

@@ -27,20 +27,13 @@
 
     var fallBackBackdropImg = function ($scope, src) {
         if (!src) {
-            // Use try/catch in case an [$rootScope:inprog] is thrown
-            try {
-                $scope.backdrop = "img/bg.jpg";
-
-            }
-            catch (err) {
-
-            }
+            setBackdrop("img/bg.jpg");
             return;
         }
 
         var setBackdrop = function () {
             var imageSrc = this.src;
-            $scope.backdrop = imageSrc;
+            setBackdrop(imageSrc);
         };
 
         var loadElement = document.createElement('img');
@@ -265,7 +258,7 @@
                 backdropUrl = getBackdropUrl(item, serverAddress) || '';
             }
 
-            $scope.waitingbackdrop = backdropUrl;
+            setWaitingBackdrop(backdropUrl);
         });
     }
 
@@ -289,7 +282,7 @@
 
         setTimeout(function () {
             setAppStatus('details');
-            $scope.waitingbackdrop = backdropUrl;
+            setWaitingBackdrop(backdropUrl);
 
             $scope.detailLogoUrl = getLogoUrl(item, serverAddress) || '';
             setOverview(item.Overview || '');
@@ -425,7 +418,7 @@
                 if ($scope.mediaType == "Audio") {
                     setAppStatus('audio');
                 }
-                $scope.paused = false;
+                setPaused(false);
             });
 
             setControls($scope);
@@ -434,7 +427,7 @@
     };
 
     factory.play = function ($scope, event) {
-        $scope.paused = false;
+        setPaused(false);
 
         if ($scope.status == 'backdrop' || $scope.status == 'playing-with-controls' || $scope.status == 'playing' || $scope.status == 'audio') {
             clearTimeouts();
@@ -469,8 +462,8 @@
         if ($scope.mediaType == "Audio") {
             setAppStatus('audio');
         }
-        $scope.paused = true;
-        $scope.currentTime = window.mediaElement.currentTime;
+        setPaused(true);
+        setCurrentPlayingTime(window.mediaElement.currentTime);
         clearTimeouts();
     };
 
