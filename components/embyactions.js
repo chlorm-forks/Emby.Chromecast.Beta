@@ -31,7 +31,7 @@
             return;
         }
 
-        var setBackdrop = function () {
+        var imageOnload = function () {
             var imageSrc = this.src;
             setBackdrop(imageSrc);
         };
@@ -39,12 +39,12 @@
         var loadElement = document.createElement('img');
         loadElement.src = src;
         loadElement.addEventListener('error', function () {
-            loadElement.removeEventListener('load', setBackdrop);
+            loadElement.removeEventListener('load', imageOnload);
         });
 
-        loadElement.addEventListener('load', setBackdrop);
+        loadElement.addEventListener('load', imageOnload);
         setTimeout(function () {
-            loadElement.removeEventListener('load', setBackdrop);
+            loadElement.removeEventListener('load', imageOnload);
         }, 30000);
     };
 
