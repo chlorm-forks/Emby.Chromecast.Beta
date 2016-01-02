@@ -45,7 +45,7 @@
             <div id="player-controls-right"><span class="player-time player-duration"></span></div>
             <div id="player-controls-center">
                 <div id="player-progress-track">
-                    <div id="player-progress-bar" ng-style="{ width: (( (startPositionTicks * 1) + (currentTime * 10000000)) / runtimeTicks * 100) + '%' }"></div>
+                    <div id="player-progress-bar"></div>
                 </div>
             </div>
         </div>
@@ -53,10 +53,10 @@
     <div class="detailContent">
         <div class="timeOfDay"><span class="timePrefix"></span> <span class="timeSuffix"></span></div>
 		
-        <div class="detailImage" ng-style="{ backgroundImage : 'url(' + detailImageUrl + ')' }">
+        <div class="detailImage">
             <div id="playedIndicator"></div>
 			
-            <div class="detailImageProgressContainer" ng-show="hasPlayedPercentage"><progress class="itemProgressBar" min="0" max="100"></progress></div>
+            <div class="detailImageProgressContainer"><progress class="itemProgressBar" min="0" max="100"></progress></div>
         </div>
 		
         <div class="detailInfo">
@@ -66,7 +66,7 @@
             <p class="overview"></p>
         </div>
     </div>
-    <div class="detailLogo" ng-style="{ backgroundImage : 'url(' + detailLogoUrl + ')' }"></div>
+    <div class="detailLogo"></div>
     <script src="bower_components/requirejs/require.js"></script>
     <script>
         require(['app.js?t=' + new Date().getTime()]);

@@ -284,7 +284,7 @@
             setAppStatus('details');
             setWaitingBackdrop(backdropUrl);
 
-            $scope.detailLogoUrl = getLogoUrl(item, serverAddress) || '';
+            setLogo(getLogoUrl(item, serverAddress) || '');
             setOverview(item.Overview || '');
             setGenres(item.Genres.join(' / '));
             setDisplayName(getDisplayName(item));
@@ -308,19 +308,18 @@
             }
 
             if (item.UserData.PlayedPercentage && item.UserData.PlayedPercentage < 100 && !item.IsFolder) {
-                $scope.hasPlayedPercentage = false;
+                setHasPlayedPercentage(false);
                 setPlayedPercentage(item.UserData.PlayedPercentage);
 
                 detailImageUrl += "&PercentPlayed=" + parseInt(item.UserData.PlayedPercentage);
 
             } else {
-                $scope.hasPlayedPercentage = false;
+                setHasPlayedPercentage(false);
                 $scope.playedPercentage = 0;
                 setPlayedPercentage(0);
             }
 
-            $scope.detailImageUrl = detailImageUrl;
-
+            setDetailImage(detailImageUrl);
         }, 0);
     }
 
@@ -404,7 +403,7 @@
         setAppStatus('backdrop');
         $scope.mediaType = data.MediaType;
 
-        $scope.detailLogoUrl = getLogoUrl(data, $scope.serverAddress) || '';
+        setLogo(getLogoUrl(data, $scope.serverAddress) || '');
 
         clearTimeouts();
     };

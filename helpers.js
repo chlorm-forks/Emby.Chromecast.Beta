@@ -170,14 +170,14 @@ function resetPlaybackScope($scope) {
     $scope.playSessionId = '';
 
     // Detail content
-    $scope.detailLogoUrl = '';
-    $scope.detailImageUrl = '';
+    setLogo('');
+    setDetailImage('');
     setOverview('');
     setGenres('');
     setDisplayName('');
     document.getElementById('miscInfo').innerHTML = '';
     document.getElementById('playedIndicator').style.display = 'none';
-    $scope.hasPlayedPercentage = false;
+    setHasPlayedPercentage(false);
     setPlayedPercentage(0);
 }
 
@@ -923,6 +923,7 @@ function setStartPositionTicks(value) {
     $scope.startPositionTicks = value;
 
     updateCurrentPlaybackProgress();
+    updateProgressBar();
 }
 
 function setCurrentPlayingTime(value) {
@@ -930,13 +931,14 @@ function setCurrentPlayingTime(value) {
     $scope.currentTime = value;
 
     updateCurrentPlaybackProgress();
+    updateProgressBar();
 }
 
 function setRuntimeTicks(value) {
 
     $scope.runtimeTicks = value;
-
     document.querySelector('.player-duration').innerHTML = $scope.runtimeTicks ? datetime.getDisplayRunningTime($scope.runtimeTicks) : '';
+    updateProgressBar();
 }
 
 function updateCurrentPlaybackProgress() {
@@ -965,6 +967,28 @@ function setPaused(value) {
         document.querySelector('.glyphicon-pause').classList.add('hide');
         document.querySelector('.glyphicon-play').classList.remove('hide');
     }
+}
+
+function setHasPlayedPercentage(value) {
+    if (value) {
+        document.querySelector('.detailImageProgressContainer').classList.remove('hide');
+    } else {
+        document.querySelector('.detailImageProgressContainer').classList.add('hide');
+    }
+}
+
+function setLogo(src) {
+    document.querySelector('.detailLogo').style.backgroundImage = src ? 'url(' + src + ')' : ''
+}
+
+function setDetailImage(src) {
+    document.querySelector('.detailImage').style.backgroundImage = src ? 'url(' + src + ')' : ''
+}
+
+function updateProgressBar() {
+
+    var width = ((($scope.startPositionTicks * 1) + ($scope.currentTime * 10000000)) / $scope.runtimeTicks * 100) + '%';
+    document.querySelector('#player-progress-bar').style.width = width;
 }
 
 function extend(target, source) {
