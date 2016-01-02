@@ -122,7 +122,8 @@ function startApp() {
     // Just until we're able to deprecate this
     window.$scope = {};
 
-    require(['fetchhelper', 'maincontroller', 'helpers'], function (fetchhelper, maincontroller) {
+    require(['fetchhelper', 'maincontroller', 'datetime', 'helpers'], function (fetchhelper, maincontroller, datetime) {
+        window.datetime = datetime;
         window.fetchhelper = fetchhelper;
     });
 }
