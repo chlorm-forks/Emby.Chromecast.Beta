@@ -173,10 +173,6 @@
         window.deviceInfo.deviceId = data.receiverName ? CryptoJS.SHA1(data.receiverName).toString() : window.deviceInfo.deviceId;
         window.playOptions.maxBitrate = Math.min(data.maxBitrate || window.playOptions.maxBitrate, BitrateCap);
 
-        if (data.supportsAc3 != null) {
-            window.playOptions.supportsAc3 = data.supportsAc3;
-        }
-
         // Items will have properties - Id, Name, Type, MediaType, IsFolder
 
         var reportProgress = false;
