@@ -584,6 +584,8 @@
         var url = getUrl($scope.serverAddress, "Playback/BitrateTest");
         url += "?size=" + byteSize;
 
+        var now = new Date().getTime();
+
         return fetchhelper.ajax({
 
             type: "GET",

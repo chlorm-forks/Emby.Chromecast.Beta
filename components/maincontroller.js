@@ -602,6 +602,7 @@
 
             }, function () {
 
+                console.log('Error detecting bitrate, will return default value.');
                 resolve(window.DefaultMaxBitrate);
             });
         });
