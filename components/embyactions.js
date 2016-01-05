@@ -573,13 +573,14 @@
 
     factory.getDownloadSpeed = function ($scope, byteSize) {
 
-        var url = getUrl(item.serverAddress, 'Playback/BitrateTest');
+        var url = getUrl($scope.serverAddress, 'Playback/BitrateTest');
         url += "?size=" + byteSize;
 
         return fetchhelper.ajax({
 
             type: "GET",
             url: url,
+            headers: getSecurityHeaders($scope.accessToken, $scope.userId),
             timeout: 5000
 
         }).then(function () {
