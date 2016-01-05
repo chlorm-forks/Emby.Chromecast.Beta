@@ -366,19 +366,19 @@
                 if (validatePlaybackInfoResult(result)) {
 
                     var currentMediaSource = result.MediaSources[0];
-                    createStreamInfo(item, currentMediaSource, ticks).then(function (streamInfo) {
 
-                        if (!streamInfo.url) {
-                            showPlaybackInfoErrorMessage('NoCompatibleStream');
-                            //self.nextTrack();
-                            return;
-                        }
+                    var streamInfo = createStreamInfo(item, mediaSource, options.startPositionTicks);
 
-                        $scope.subtitleStreamIndex = subtitleStreamIndex;
-                        $scope.audioStreamIndex = audioStreamIndex;
+                    if (!streamInfo.url) {
+                        showPlaybackInfoErrorMessage('NoCompatibleStream');
+                        //self.nextTrack();
+                        return;
+                    }
 
-                        changeStreamToUrl(playSessionId, streamInfo);
-                    });
+                    $scope.subtitleStreamIndex = subtitleStreamIndex;
+                    $scope.audioStreamIndex = audioStreamIndex;
+
+                    changeStreamToUrl(playSessionId, streamInfo);
                 }
             });
         });
