@@ -168,6 +168,10 @@
             return;
         }
 
+        $scope.userId = data.userId;
+        $scope.accessToken = data.accessToken;
+        $scope.serverAddress = data.serverAddress;
+
         data.options = data.options || {};
         window.deviceInfo.deviceName = data.receiverName || window.deviceInfo.deviceName;
         window.deviceInfo.deviceId = data.receiverName ? CryptoJS.SHA1(data.receiverName).toString() : window.deviceInfo.deviceId;
