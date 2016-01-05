@@ -343,7 +343,7 @@
         if ($scope.canClientSeek && params == null) {
 
             window.mediaElement.currentTime = ticks / 10000000;
-            reportProgress = true;
+            embyActions.reportPlaybackProgress($scope, getReportingParams($scope));
             return;
         }
 
