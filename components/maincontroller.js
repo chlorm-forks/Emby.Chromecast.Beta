@@ -365,25 +365,43 @@
 
                     if (validatePlaybackInfoResult(result)) {
 
-                        //currentMediaSource = result.MediaSources[0];
-                        //createStreamInfo(apiClient, currentItem.MediaType, currentItem, currentMediaSource, ticks).then(function (streamInfo) {
+                        var currentMediaSource = result.MediaSources[0];
+                        createStreamInfo(item, currentMediaSource, ticks).then(function (streamInfo) {
 
-                        //    if (!streamInfo.url) {
-                        //        showPlaybackInfoErrorMessage('NoCompatibleStream');
-                        //        self.nextTrack();
-                        //        return;
-                        //    }
+                            if (!streamInfo.url) {
+                                showPlaybackInfoErrorMessage('NoCompatibleStream');
+                                //self.nextTrack();
+                                return;
+                            }
 
-                        //    getPlayerData(player).subtitleStreamIndex = subtitleStreamIndex;
-                        //    getPlayerData(player).audioStreamIndex = audioStreamIndex;
+                            $scope.subtitleStreamIndex = subtitleStreamIndex;
+                            $scope.audioStreamIndex = audioStreamIndex;
 
-                        //    changeStreamToUrl(apiClient, player, playSessionId, streamInfo);
-                        //});
+                            changeStreamToUrl(playSessionId, streamInfo);
+                        });
                     }
                 });
             });
 
         });
+    }
+
+    function changeStreamToUrl(playSessionId, streamInfo) {
+
+        //clearProgressInterval(mediaRenderer);
+
+        //getPlayerData(mediaRenderer).isChangingStream = true;
+
+        //if (getPlayerData(mediaRenderer).MediaType == "Video") {
+        //    apiClient.stopActiveEncodings(playSessionId).then(function () {
+
+        //        setSrcIntoRenderer(apiClient, mediaRenderer, streamInfo);
+        //    });
+
+        //} else {
+
+        //    setSrcIntoRenderer(apiClient, mediaRenderer, streamInfo);
+        //}
     }
 
     // Create a message handler for the custome namespace channel
