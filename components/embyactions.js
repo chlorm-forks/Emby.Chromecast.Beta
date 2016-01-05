@@ -595,14 +595,14 @@
     factory.detectBitrate = function ($scope) {
 
         // First try a small amount so that we don't hang up their mobile connection
-        return self.getDownloadSpeed($scope, 1000000).then(function (bitrate) {
+        return factory.getDownloadSpeed($scope, 1000000).then(function (bitrate) {
 
             if (bitrate < 1000000) {
                 return Math.round(bitrate * .8);
             } else {
 
                 // If that produced a fairly high speed, try again with a larger size to get a more accurate result
-                return self.getDownloadSpeed($scope, 2400000).then(function (bitrate) {
+                return factory.getDownloadSpeed($scope, 2400000).then(function (bitrate) {
 
                     return Math.round(bitrate * .8);
                 });
