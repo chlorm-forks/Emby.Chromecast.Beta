@@ -533,7 +533,7 @@
 
         unloadPlayer();
 
-        getMaxBitrate(maxBitrate).then(function () {
+        getMaxBitrate().then(function (maxBitrate) {
 
             var deviceProfile = getDeviceProfile(maxBitrate);
 
