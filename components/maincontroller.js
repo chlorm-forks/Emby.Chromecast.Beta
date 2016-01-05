@@ -586,7 +586,7 @@
 
             if (detectedBitrate && (new Date().getTime() - lastBitrateDetect) < 300000) {
                 console.log('returning previous detected bitrate of ' + detectedBitrate);
-                resolve(Math.min(detectedBitrate, window.BitrateCap));
+                resolve(Math.min(detectedBitrate, window.DetectedBitrateCap));
                 return;
             }
 
@@ -598,7 +598,7 @@
                 lastBitrateDetect = new Date().getTime();
                 detectedBitrate = bitrate;
 
-                resolve(Math.min(detectedBitrate, window.BitrateCap));
+                resolve(Math.min(detectedBitrate, window.DetectedBitrateCap));
 
             }, function () {
 

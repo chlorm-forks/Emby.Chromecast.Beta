@@ -1,4 +1,5 @@
 var BitrateCap = 20000000;
+var DetectedBitrateCap = 11000000;
 var DefaultMaxBitrate = 3000000;
 var MaxBitrate = null;
 
