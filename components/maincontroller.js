@@ -356,33 +356,31 @@
 
         getMaxBitrate(item.MediaType).then(function (maxBitrate) {
 
-            getDeviceProfile(maxBitrate).then(function (deviceProfile) {
+            var deviceProfile = getDeviceProfile(maxBitrate);
 
-                var audioStreamIndex = params.AudioStreamIndex == null ? $scope.audioStreamIndex : params.AudioStreamIndex;
-                var subtitleStreamIndex = params.SubtitleStreamIndex == null ? $scope.subtitleStreamIndex : params.SubtitleStreamIndex;
+            var audioStreamIndex = params.AudioStreamIndex == null ? $scope.audioStreamIndex : params.AudioStreamIndex;
+            var subtitleStreamIndex = params.SubtitleStreamIndex == null ? $scope.subtitleStreamIndex : params.SubtitleStreamIndex;
 
-                embyActions.getPlaybackInfo(item, maxBitrate, deviceProfile, ticks, $scope.mediaSourceId, audioStreamIndex, subtitleStreamIndex, liveStreamId).then(function (result) {
+            embyActions.getPlaybackInfo(item, maxBitrate, deviceProfile, ticks, $scope.mediaSourceId, audioStreamIndex, subtitleStreamIndex, liveStreamId).then(function (result) {
 
-                    if (validatePlaybackInfoResult(result)) {
+                if (validatePlaybackInfoResult(result)) {
 
-                        var currentMediaSource = result.MediaSources[0];
-                        createStreamInfo(item, currentMediaSource, ticks).then(function (streamInfo) {
+                    var currentMediaSource = result.MediaSources[0];
+                    createStreamInfo(item, currentMediaSource, ticks).then(function (streamInfo) {
 
-                            if (!streamInfo.url) {
-                                showPlaybackInfoErrorMessage('NoCompatibleStream');
-                                //self.nextTrack();
-                                return;
-                            }
+                        if (!streamInfo.url) {
+                            showPlaybackInfoErrorMessage('NoCompatibleStream');
+                            //self.nextTrack();
+                            return;
+                        }
 
-                            $scope.subtitleStreamIndex = subtitleStreamIndex;
-                            $scope.audioStreamIndex = audioStreamIndex;
+                        $scope.subtitleStreamIndex = subtitleStreamIndex;
+                        $scope.audioStreamIndex = audioStreamIndex;
 
-                            changeStreamToUrl(playSessionId, streamInfo);
-                        });
-                    }
-                });
+                        changeStreamToUrl(playSessionId, streamInfo);
+                    });
+                }
             });
-
         });
     }
 
