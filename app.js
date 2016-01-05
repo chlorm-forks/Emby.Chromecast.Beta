@@ -1,5 +1,6 @@
 var BitrateCap = 20000000;
 var DefaultMaxBitrate = 3000000;
+var MaxBitrate = null;
 
 window.deviceInfo = {
     deviceId: "chromecast_" + new Date().getTime(),
@@ -8,11 +9,6 @@ window.deviceInfo = {
 };
 
 window.mediaElement = document.getElementById('video-player');
-
-window.playOptions = {
-    maxBitrate: DefaultMaxBitrate,
-    supportsAc3: false
-};
 
 window.playlist = [];
 window.currentPlaylistIndex = -1;

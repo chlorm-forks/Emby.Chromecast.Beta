@@ -571,6 +571,46 @@
         });
     };
 
+    factory.getDownloadSpeed = function ($scope, byteSize) {
+
+        var url = getUrl(item.serverAddress, 'Playback/BitrateTest');
+        url += "?size=" + byteSize;
+
+        return fetchhelper.ajax({
+
+            type: "GET",
+            url: url,
+            timeout: 5000
+
+        }).then(function () {
+
+            var responseTimeSeconds = (new Date().getTime() - now) / 1000;
+            var bytesPerSecond = byteSize / responseTimeSeconds;
+            var bitrate = Math.round(bytesPerSecond * 8);
+
+            return bitrate;
+        });
+    };
+
+    factory.detectBitrate = function ($scope) {
+
+        // First try a small amount so that we don't hang up their mobile connection
+        return self.getDownloadSpeed($scope, 1000000).then(function (bitrate) {
+
+            if (bitrate < 1000000) {
+                return Math.round(bitrate * .8);
+            } else {
+
+                // If that produced a fairly high speed, try again with a larger size to get a more accurate result
+                return self.getDownloadSpeed($scope, 2400000).then(function (bitrate) {
+
+                    return Math.round(bitrate * .8);
+                });
+            }
+
+        });
+    };
+
     factory.setApplicationClose = setApplicationClose;
 
     return factory;

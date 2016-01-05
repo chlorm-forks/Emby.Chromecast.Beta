@@ -171,7 +171,10 @@
         data.options = data.options || {};
         window.deviceInfo.deviceName = data.receiverName || window.deviceInfo.deviceName;
         window.deviceInfo.deviceId = data.receiverName ? CryptoJS.SHA1(data.receiverName).toString() : window.deviceInfo.deviceId;
-        window.playOptions.maxBitrate = Math.min(data.maxBitrate || window.playOptions.maxBitrate, BitrateCap);
+
+        if (data.maxBitrate) {
+            window.MaxBitrate = data.maxBitrate;
+        }
 
         // Items will have properties - Id, Name, Type, MediaType, IsFolder
 
@@ -507,12 +510,12 @@
         }, broadcastConnectionErrorMessage);
     }
 
-    function getDeviceProfile() {
+    function getDeviceProfile(maxBitrate) {
 
         var profile = browserdeviceprofile;
 
-        profile.MaxStreamingBitrate = DefaultMaxBitrate;
-        profile.MaxStaticBitrate = DefaultMaxBitrate;
+        profile.MaxStreamingBitrate = maxBitrate;
+        profile.MaxStaticBitrate = maxBitrate;
         profile.MusicStreamingTranscodingBitrate = 192000;
 
         profile.SubtitleProfiles = [];
@@ -530,34 +533,67 @@
 
         unloadPlayer();
 
-        var deviceProfile = getDeviceProfile();
-        var maxBitrate = window.playOptions.maxBitrate;
+        getMaxBitrate(maxBitrate).then(function () {
 
-        embyActions.getPlaybackInfo(item, maxBitrate, deviceProfile, options.startPositionTicks, options.mediaSourceId, options.audioStreamIndex, options.subtitleStreamIndex).then(function (result) {
+            var deviceProfile = getDeviceProfile(maxBitrate);
 
-            if (validatePlaybackInfoResult(result)) {
+            embyActions.getPlaybackInfo(item, maxBitrate, deviceProfile, options.startPositionTicks, options.mediaSourceId, options.audioStreamIndex, options.subtitleStreamIndex).then(function (result) {
 
-                var mediaSource = getOptimalMediaSource(item.MediaType, result.MediaSources);
+                if (validatePlaybackInfoResult(result)) {
 
-                if (mediaSource) {
+                    var mediaSource = getOptimalMediaSource(item.MediaType, result.MediaSources);
 
-                    if (mediaSource.RequiresOpening) {
+                    if (mediaSource) {
 
-                        embyActions.getLiveStream(item, result.PlaySessionId, maxBitrate, deviceProfile, options.startPositionTicks, mediaSource, null, null).then(function (openLiveStreamResult) {
+                        if (mediaSource.RequiresOpening) {
 
-                            openLiveStreamResult.MediaSource.enableDirectPlay = supportsDirectPlay(openLiveStreamResult.MediaSource);
+                            embyActions.getLiveStream(item, result.PlaySessionId, maxBitrate, deviceProfile, options.startPositionTicks, mediaSource, null, null).then(function (openLiveStreamResult) {
+
+                                openLiveStreamResult.MediaSource.enableDirectPlay = supportsDirectPlay(openLiveStreamResult.MediaSource);
+                                playMediaSource(result.PlaySessionId, item, mediaSource, options);
+                            });
+
+                        } else {
                             playMediaSource(result.PlaySessionId, item, mediaSource, options);
-                        });
-
+                        }
                     } else {
-                        playMediaSource(result.PlaySessionId, item, mediaSource, options);
+                        showPlaybackInfoErrorMessage('NoCompatibleStream');
                     }
-                } else {
-                    showPlaybackInfoErrorMessage('NoCompatibleStream');
                 }
+
+            }, broadcastConnectionErrorMessage);
+        });
+    }
+
+    var lastBitrateDetect = 0;
+    var detectedBitrate = 0;
+    function getMaxBitrate() {
+
+        return new Promise(function (resolve, reject) {
+
+            if (window.MaxBitrate) {
+                resolve(Math.min(window.MaxBitrate || window.BitrateCap, window.BitrateCap));
+                return;
             }
 
-        }, broadcastConnectionErrorMessage);
+            if (detectedBitrate && (new Date().getTime() - lastBitrateDetect) < 300000) {
+                resolve(Math.min(detectedBitrate, window.BitrateCap));
+                return;
+            }
+
+            embyActions.detectBitrate($scope).then(function (bitrate) {
+
+                console.log('Max bitrate auto detected to ' + bitrate);
+                lastBitrateDetect = new Date().getTime();
+                detectedBitrate = bitrate;
+
+                resolve(Math.min(detectedBitrate, window.BitrateCap));
+
+            }, function () {
+
+                resolve(window.DefaultMaxBitrate);
+            });
+        });
     }
 
     function validatePlaybackInfoResult(result) {
