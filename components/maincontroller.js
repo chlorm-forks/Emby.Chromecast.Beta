@@ -569,17 +569,24 @@
     var detectedBitrate = 0;
     function getMaxBitrate() {
 
+        console.log('getMaxBitrate');
+
         return new Promise(function (resolve, reject) {
 
             if (window.MaxBitrate) {
+                console.log('bitrate is set to ' + window.MaxBitrate);
+
                 resolve(Math.min(window.MaxBitrate || window.BitrateCap, window.BitrateCap));
                 return;
             }
 
             if (detectedBitrate && (new Date().getTime() - lastBitrateDetect) < 300000) {
+                console.log('returning previous detected bitrate of ' + detectedBitrate);
                 resolve(Math.min(detectedBitrate, window.BitrateCap));
                 return;
             }
+
+            console.log('detecting bitrate');
 
             embyActions.detectBitrate($scope).then(function (bitrate) {
 
