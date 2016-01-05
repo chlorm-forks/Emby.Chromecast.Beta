@@ -34,11 +34,6 @@
 
             embyActions.reportPlaybackProgress($scope, getReportingParams($scope), false);
         }
-
-        if (elapsed > 1000) {
-
-            $scope.currentTime = window.mediaElement.currentTime;
-        }
     }
 
     function onMediaElementPause() {
@@ -221,12 +216,10 @@
         }
         else if (data.command == 'SetAudioStreamIndex') {
 
-            // TODO
-
+            setAudioStreamIndex($scope, data.options.index, data.serverAddress);
         }
         else if (data.command == 'SetSubtitleStreamIndex') {
 
-            // TODO
             setSubtitleStreamIndex($scope, data.options.index, data.serverAddress);
         }
         else if (data.command == 'VolumeUp') {
@@ -258,9 +251,7 @@
             reportProgress = true;
         }
         else if (data.command == 'Seek') {
-
-            window.mediaElement.currentTime = data.options.position;
-            reportProgress = true;
+            seek(data.options.position * 10000000);
         }
         else if (data.command == 'Mute') {
 
@@ -331,6 +322,68 @@
 
         }
         // TODO: If we get here then it must require a transcoding change. 
+    }
+
+    function setAudioStreamIndex($scope, index, serverAddress) {
+
+        var positionTicks = getCurrentPositionTicks($scope);
+        changeStream(positionTicks, { AudioStreamIndex: index });
+    }
+
+    function seek(ticks) {
+        changeStream(ticks);
+    }
+
+    function changeStream(ticks, params) {
+
+        if (ticks) {
+            ticks = parseInt(ticks);
+        }
+
+        if ($scope.canClientSeek && params == null) {
+
+            window.mediaElement.currentTime = ticks / 10000000;
+            reportProgress = true;
+            return;
+        }
+
+        params = params || {};
+
+        var playSessionId = $scope.playSessionId;
+        var liveStreamId = $scope.liveStreamId;
+
+        var item = $scope.item;
+
+        getMaxBitrate(item.MediaType).then(function (maxBitrate) {
+
+            getDeviceProfile(maxBitrate).then(function (deviceProfile) {
+
+                var audioStreamIndex = params.AudioStreamIndex == null ? $scope.audioStreamIndex : params.AudioStreamIndex;
+                var subtitleStreamIndex = params.SubtitleStreamIndex == null ? $scope.subtitleStreamIndex : params.SubtitleStreamIndex;
+
+                embyActions.getPlaybackInfo(item, maxBitrate, deviceProfile, ticks, $scope.mediaSourceId, audioStreamIndex, subtitleStreamIndex, liveStreamId).then(function (result) {
+
+                    if (validatePlaybackInfoResult(result)) {
+
+                        //currentMediaSource = result.MediaSources[0];
+                        //createStreamInfo(apiClient, currentItem.MediaType, currentItem, currentMediaSource, ticks).then(function (streamInfo) {
+
+                        //    if (!streamInfo.url) {
+                        //        showPlaybackInfoErrorMessage('NoCompatibleStream');
+                        //        self.nextTrack();
+                        //        return;
+                        //    }
+
+                        //    getPlayerData(player).subtitleStreamIndex = subtitleStreamIndex;
+                        //    getPlayerData(player).audioStreamIndex = audioStreamIndex;
+
+                        //    changeStreamToUrl(apiClient, player, playSessionId, streamInfo);
+                        //});
+                    }
+                });
+            });
+
+        });
     }
 
     // Create a message handler for the custome namespace channel

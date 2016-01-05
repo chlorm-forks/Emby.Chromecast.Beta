@@ -15,8 +15,8 @@ function getUrl(serverAddress, name) {
     return url;
 }
 
-function getReportingParams($scope) {
-
+function getCurrentPositionTicks($scope) {
+    
     var positionTicks = window.mediaElement.currentTime * 10000000;
 
     if (!$scope.canClientSeek) {
@@ -24,8 +24,13 @@ function getReportingParams($scope) {
         positionTicks += ($scope.startPositionTicks || 0);
     }
 
+    return positionTicks;
+}
+
+function getReportingParams($scope) {
+
     return {
-        PositionTicks: positionTicks,
+        PositionTicks: getCurrentPositionTicks($scope),
         IsPaused: window.mediaElement.paused,
         IsMuted: window.VolumeInfo.IsMuted,
         AudioStreamIndex: $scope.audioStreamIndex,
@@ -366,7 +371,7 @@ function createStreamInfo(item, mediaSource, startPosition) {
 
     // TODO: Remove the second half of the expression by supporting changing the mediaElement src dynamically.
     // It is a pain and will require unbinding all event handlers during the operation
-    var canSeek = (mediaSource.RunTimeTicks || 0) > 0 && (isStatic || streamContainer == 'm3u8');
+    var canSeek = (mediaSource.RunTimeTicks || 0) > 0;
 
     var info = {
         url: mediaUrl,
@@ -928,8 +933,6 @@ function setStartPositionTicks(value) {
 
 function setCurrentPlayingTime(value) {
 
-    $scope.currentTime = value;
-
     updateCurrentPlaybackProgress();
     updateProgressBar();
 }
@@ -943,8 +946,7 @@ function setRuntimeTicks(value) {
 
 function updateCurrentPlaybackProgress() {
 
-    var ticks = $scope.startPositionTicks || 0;
-    ticks += ($scope.currentTime || 0) * 10000000;
+    var ticks = getCurrentPositionTicks($scope);
 
     document.querySelector('.player-current-time').innerHTML = ticks ? datetime.getDisplayRunningTime(ticks) : '';
 }
@@ -987,7 +989,9 @@ function setDetailImage(src) {
 
 function updateProgressBar() {
 
-    var width = ((($scope.startPositionTicks * 1) + ($scope.currentTime * 10000000)) / $scope.runtimeTicks * 100) + '%';
+    var ticks = getCurrentPositionTicks($scope);
+
+    var width = (100 * ticks / $scope.runtimeTicks) + '%';
     document.querySelector('#player-progress-bar').style.width = width;
 }
 
