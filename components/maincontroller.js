@@ -537,7 +537,7 @@
 
         unloadPlayer();
 
-        getMaxBitrate().then(function (maxBitrate) {
+        getMaxBitrate(item.MediaType).then(function (maxBitrate) {
 
             var deviceProfile = getDeviceProfile(maxBitrate);
 
@@ -571,7 +571,7 @@
 
     var lastBitrateDetect = 0;
     var detectedBitrate = 0;
-    function getMaxBitrate() {
+    function getMaxBitrate(mediaType) {
 
         console.log('getMaxBitrate');
 
@@ -587,6 +587,12 @@
             if (detectedBitrate && (new Date().getTime() - lastBitrateDetect) < 300000) {
                 console.log('returning previous detected bitrate of ' + detectedBitrate);
                 resolve(Math.min(detectedBitrate, window.DetectedBitrateCap));
+                return;
+            }
+
+            if (mediaType != 'Video') {
+                // We don't need to bother with bitrate detection for music
+                resolve(window.DefaultMaxBitrate);
                 return;
             }
 
