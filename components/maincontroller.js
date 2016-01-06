@@ -372,7 +372,7 @@
 
                 if (validatePlaybackInfoResult(result)) {
 
-                    var currentMediaSource = result.MediaSources[0];
+                    var mediaSource = result.MediaSources[0];
 
                     var streamInfo = createStreamInfo(item, mediaSource, options.startPositionTicks);
 
