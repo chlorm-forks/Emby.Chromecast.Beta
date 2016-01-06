@@ -335,9 +335,9 @@
             return;
         } else {
             console.log('setSubtitleStreamIndex video url change required');
-
+            var positionTicks = getCurrentPositionTicks($scope);
+            changeStream(positionTicks, { SubtitleIndex: index });
         }
-        // TODO: If we get here then it must require a transcoding change. 
     }
 
     function setAudioStreamIndex($scope, index, serverAddress) {
