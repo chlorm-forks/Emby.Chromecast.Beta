@@ -21,6 +21,11 @@
     var broadcastToServer = new Date();
 
     function onMediaElementTimeUpdate() {
+
+        if ($scope.isChangingStream) {
+            return;
+        }
+
         var now = new Date();
 
         var elapsed = now - broadcastToServer;
@@ -37,6 +42,11 @@
     }
 
     function onMediaElementPause() {
+
+        if ($scope.isChangingStream) {
+            return;
+        }
+
         embyActions.reportPlaybackProgress($scope, getReportingParams($scope));
     }
 
@@ -422,6 +432,14 @@
         setStartPositionTicks(streamInfo.startPositionTicks || 0);
 
         window.mediaElement.play();
+
+        setTextTrack($scope, streamInfo.subtitleStreamUrl);
+
+        setTimeout(function() {
+            
+            $scope.isChangingStream = false;
+
+        }, 1000);
     }
 
     // Create a message handler for the custome namespace channel
@@ -624,6 +642,7 @@
 
     function playItemInternal(item, options) {
 
+        $scope.isChangingStream = false;
         setAppStatus('loading');
 
         unloadPlayer();
