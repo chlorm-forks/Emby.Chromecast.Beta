@@ -625,7 +625,7 @@
     factory.stopActiveEncodings = function ($scope) {
 
         var options = {
-            deviceId: deviceId
+            deviceId: deviceInfo.deviceId
         };
 
         if (playSessionId) {
