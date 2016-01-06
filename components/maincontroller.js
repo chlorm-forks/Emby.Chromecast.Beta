@@ -72,6 +72,7 @@
 
     mgr.defaultOnPlay = mgr.onPlay;
     mgr.onPlay = function (event) {
+
         embyActions.play($scope, event);
         embyActions.reportPlaybackProgress($scope, getReportingParams($scope));
     };
@@ -89,6 +90,11 @@
     };
 
     mgr.onEnded = function () {
+
+        // Ignore
+        if ($scope.isChangingStream) {
+            return;
+        }
 
         embyActions.setApplicationClose();
         enableTimeUpdateListener(false);
@@ -353,8 +359,9 @@
         var liveStreamId = $scope.liveStreamId;
 
         var item = $scope.item;
+        var mediaType = item.MediaType;
 
-        getMaxBitrate(item.MediaType).then(function (maxBitrate) {
+        getMaxBitrate(mediaType).then(function (maxBitrate) {
 
             var deviceProfile = getDeviceProfile(maxBitrate);
 
@@ -378,28 +385,35 @@
                     $scope.subtitleStreamIndex = subtitleStreamIndex;
                     $scope.audioStreamIndex = audioStreamIndex;
 
-                    changeStreamToUrl(playSessionId, streamInfo);
+                    changeStreamToUrl(playSessionId, mediaType, streamInfo);
                 }
             });
         });
     }
 
-    function changeStreamToUrl(playSessionId, streamInfo) {
+    function changeStreamToUrl(playSessionId, mediaType, streamInfo) {
 
-        //clearProgressInterval(mediaRenderer);
+        $scope.isChangingStream = true;
 
-        //getPlayerData(mediaRenderer).isChangingStream = true;
+        if (mediaType == "Video") {
+            embyActions.stopActiveEncodings(playSessionId).then(function () {
 
-        //if (getPlayerData(mediaRenderer).MediaType == "Video") {
-        //    apiClient.stopActiveEncodings(playSessionId).then(function () {
+                setSrcIntoRenderer(streamInfo);
+            });
 
-        //        setSrcIntoRenderer(apiClient, mediaRenderer, streamInfo);
-        //    });
+        } else {
 
-        //} else {
+            setSrcIntoRenderer(streamInfo);
+        }
+    }
 
-        //    setSrcIntoRenderer(apiClient, mediaRenderer, streamInfo);
-        //}
+    function setSrcIntoRenderer(streamInfo) {
+        
+        var url = streamInfo.url;
+        window.mediaElement.src = url;
+        window.mediaElement.autoplay = true;
+
+        window.mediaElement.play();
     }
 
     // Create a message handler for the custome namespace channel
@@ -808,69 +822,14 @@
 
         mediaElement.autoplay = autoplay;
 
-        // Create the Host - much of your interaction with the library uses the Host and
-        // methods you provide to it.
-        var host = new cast.player.api.Host({ 'mediaElement': window.mediaElement, 'url': url });
+        window.mediaElement.src = url;
+        window.mediaElement.autoplay = true;
 
-        // TODO: Add info from startPositionTicks
-        var startSeconds = options.startPositionTicks && streamInfo.canClientSeek ? (Math.floor(options.startPositionTicks / 10000000)) : 0;
-
-        console.log('Video start position seconds: ' + startSeconds);
-
-        var protocol = null;
-
-        if (url.lastIndexOf('.m3u8') >= 0) {
-            // HTTP Live Streaming
-            protocol = cast.player.api.CreateHlsStreamingProtocol(host);
-        } else if (url.lastIndexOf('.mpd') >= 0) {
-            // MPEG-DASH
-            protocol = cast.player.api.CreateDashStreamingProtocol(host);
-        } else if (url.indexOf('.ism/') >= 0) {
-            // Smooth Streaming
-            protocol = cast.player.api.CreateSmoothStreamingProtocol(host);
+        window.mediaElement.load();
+        if (autoplay) {
+            window.mediaElement.pause();
+            embyActions.delayStart($scope);
         }
-
-        host.onError = function (errorCode) {
-
-            host.onError = null;
-
-            console.log("Fatal Error - " + errorCode);
-
-            broadcastToMessageBus({
-                type: 'error',
-                message: "Fatal Error - " + errorCode
-            });
-
-            stop(null, false);
-        };
-
-        if (protocol !== null) {
-
-            console.log("Starting Media Player Library");
-            window.player = new cast.player.api.Player(host);
-            window.player.load(protocol, startSeconds);
-
-            if (streamInfo.playerStartPositionTicks) {
-                window.mediaElement.currentTime = (streamInfo.playerStartPositionTicks / 10000000);
-            }
-            if (autoplay) {
-                window.mediaElement.pause();
-                embyActions.delayStart($scope);
-            }
-
-        } else {
-
-            var seekParam = startSeconds ? '#t=' + (startSeconds) : '';
-            window.mediaElement.src = url + seekParam;
-            window.mediaElement.autoplay = true;
-
-            window.mediaElement.load();
-            if (autoplay) {
-                window.mediaElement.pause();
-                embyActions.delayStart($scope);
-            }
-        }
-
         enableTimeUpdateListener(false);
         enableTimeUpdateListener(true);
 

@@ -169,6 +169,7 @@ function resetPlaybackScope($scope) {
     $scope.playMethod = '';
     $scope.canSeek = false;
     $scope.canClientSeek = false;
+    $scope.isChangingStream = false;
 
     $scope.item = null;
     $scope.liveStreamId = '';
@@ -317,6 +318,7 @@ function createStreamInfo(item, mediaSource, startPosition) {
                 mediaUrl += "&api_key=" + item.accessToken;
                 mediaUrl += "&static=true" + seekParam;
                 isStatic = true;
+                playerStartPositionTicks = startPosition || 0;
 
             } else {
 
@@ -344,6 +346,7 @@ function createStreamInfo(item, mediaSource, startPosition) {
 
             mediaUrl = mediaSource.Path;
             isStatic = true;
+            playerStartPositionTicks = startPosition || 0;
 
         } else {
 

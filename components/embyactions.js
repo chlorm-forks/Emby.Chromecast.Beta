@@ -622,6 +622,26 @@
         });
     };
 
+    factory.stopActiveEncodings = function ($scope) {
+
+        var options = {
+            deviceId: deviceId
+        };
+
+        if (playSessionId) {
+            options.PlaySessionId = playSessionId;
+        }
+
+        var url = getUrl($scope.serverAddress, "Videos/ActiveEncodings");
+
+        return fetchhelper.ajax({
+            type: "DELETE",
+            headers: getSecurityHeaders($scope.accessToken, $scope.userId),
+            url: url,
+            query: options
+        });
+    };
+
     factory.setApplicationClose = setApplicationClose;
 
     return factory;
