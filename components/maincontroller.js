@@ -374,7 +374,7 @@
 
                     var mediaSource = result.MediaSources[0];
 
-                    var streamInfo = createStreamInfo(item, mediaSource, options.startPositionTicks);
+                    var streamInfo = createStreamInfo(item, mediaSource, ticks);
 
                     if (!streamInfo.url) {
                         showPlaybackInfoErrorMessage('NoCompatibleStream');
