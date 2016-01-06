@@ -628,8 +628,8 @@
             deviceId: deviceInfo.deviceId
         };
 
-        if (playSessionId) {
-            options.PlaySessionId = playSessionId;
+        if ($scope.playSessionId) {
+            options.PlaySessionId = $scope.playSessionId;
         }
 
         var url = getUrl($scope.serverAddress, "Videos/ActiveEncodings");

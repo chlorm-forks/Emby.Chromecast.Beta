@@ -394,7 +394,14 @@
 
         $scope.isChangingStream = true;
 
-        if (mediaType == "Video") {
+        var requiresStoppingTranscoding = mediaType == "Video";
+        // TODO: Reactivate for HLS
+        requiresStoppingTranscoding = false;
+
+        if (requiresStoppingTranscoding) {
+
+            window.mediaElement.pause();
+
             embyActions.stopActiveEncodings(playSessionId).then(function () {
 
                 setSrcIntoRenderer(streamInfo);
