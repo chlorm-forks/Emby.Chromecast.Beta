@@ -280,46 +280,44 @@
         var backdropUrl = getBackdropUrl(item, serverAddress) || '';
         var detailImageUrl = getPrimaryImageUrl(item, serverAddress) || '';
 
-        setTimeout(function () {
-            setAppStatus('details');
-            setWaitingBackdrop(backdropUrl);
+        setAppStatus('details');
+        setWaitingBackdrop(backdropUrl);
 
-            setLogo(getLogoUrl(item, serverAddress) || '');
-            setOverview(item.Overview || '');
-            setGenres(item.Genres.join(' / '));
-            setDisplayName(getDisplayName(item));
-            document.getElementById('miscInfo').innerHTML = getMiscInfoHtml(item, datetime) || '';
-            document.getElementById('detailRating').innerHTML = getRatingHtml(item);
+        setLogo(getLogoUrl(item, serverAddress) || '');
+        setOverview(item.Overview || '');
+        setGenres(item.Genres.join(' / '));
+        setDisplayName(getDisplayName(item));
+        document.getElementById('miscInfo').innerHTML = getMiscInfoHtml(item, datetime) || '';
+        document.getElementById('detailRating').innerHTML = getRatingHtml(item);
 
-            var playedIndicator = document.getElementById('playedIndicator');
+        var playedIndicator = document.getElementById('playedIndicator');
 
-            if (item.UserData.Played) {
+        if (item.UserData.Played) {
 
-                playedIndicator.style.display = 'block';
-                playedIndicator.innerHTML = '<span class="glyphicon glyphicon-ok"></span>';
-            }
-            else if (item.UserData.UnplayedItemCount) {
+            playedIndicator.style.display = 'block';
+            playedIndicator.innerHTML = '<span class="glyphicon glyphicon-ok"></span>';
+        }
+        else if (item.UserData.UnplayedItemCount) {
 
-                playedIndicator.style.display = 'block';
-                playedIndicator.innerHTML = item.UserData.UnplayedItemCount;
-            }
-            else {
-                playedIndicator.style.display = 'none';
-            }
+            playedIndicator.style.display = 'block';
+            playedIndicator.innerHTML = item.UserData.UnplayedItemCount;
+        }
+        else {
+            playedIndicator.style.display = 'none';
+        }
 
-            if (item.UserData.PlayedPercentage && item.UserData.PlayedPercentage < 100 && !item.IsFolder) {
-                setHasPlayedPercentage(false);
-                setPlayedPercentage(item.UserData.PlayedPercentage);
+        if (item.UserData.PlayedPercentage && item.UserData.PlayedPercentage < 100 && !item.IsFolder) {
+            setHasPlayedPercentage(false);
+            setPlayedPercentage(item.UserData.PlayedPercentage);
 
-                detailImageUrl += "&PercentPlayed=" + parseInt(item.UserData.PlayedPercentage);
+            detailImageUrl += "&PercentPlayed=" + parseInt(item.UserData.PlayedPercentage);
 
-            } else {
-                setHasPlayedPercentage(false);
-                setPlayedPercentage(0);
-            }
+        } else {
+            setHasPlayedPercentage(false);
+            setPlayedPercentage(0);
+        }
 
-            setDetailImage(detailImageUrl);
-        }, 0);
+        setDetailImage(detailImageUrl);
     }
 
     factory.displayItem = function ($scope, serverAddress, accessToken, userId, itemId) {
@@ -449,9 +447,9 @@
                     setAppStatus('audio');
                 }
 
-            }, 20).then(function () {
                 setControls($scope);
-            });
+
+            }, 20);
         }
     };
 
