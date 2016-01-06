@@ -386,7 +386,8 @@ function createStreamInfo(item, mediaSource, startPosition) {
         canClientSeek: isStatic || (canSeek && streamContainer == 'm3u8'),
         audioStreamIndex: mediaSource.DefaultAudioStreamIndex,
         subtitleStreamIndex: mediaSource.DefaultSubtitleStreamIndex,
-        playerStartPositionTicks: playerStartPositionTicks
+        playerStartPositionTicks: playerStartPositionTicks,
+        startPositionTicks: startPosition
     };
 
     if (info.subtitleStreamIndex != null) {

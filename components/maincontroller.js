@@ -382,10 +382,9 @@
                         return;
                     }
 
+                    changeStreamToUrl(playSessionId, mediaType, streamInfo);
                     $scope.subtitleStreamIndex = subtitleStreamIndex;
                     $scope.audioStreamIndex = audioStreamIndex;
-
-                    changeStreamToUrl(playSessionId, mediaType, streamInfo);
                 }
             });
         });
@@ -408,10 +407,12 @@
     }
 
     function setSrcIntoRenderer(streamInfo) {
-        
+
         var url = streamInfo.url;
         window.mediaElement.src = url;
         window.mediaElement.autoplay = true;
+
+        setStartPositionTicks(streamInfo.startPositionTicks || 0);
 
         window.mediaElement.play();
     }
