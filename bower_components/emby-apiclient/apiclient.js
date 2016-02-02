@@ -275,6 +275,8 @@
 
                         if (request.dataType == 'json' || request.headers.accept == 'application/json') {
                             return response.json();
+                        } else if (request.dataType == 'text' || (response.headers.get('Content-Type') || '').toLowerCase().indexOf('text/') == 0) {
+                            return response.text();
                         } else {
                             return response;
                         }
@@ -398,6 +400,8 @@
 
                     if (request.dataType == 'json' || request.headers.accept == 'application/json') {
                         return response.json();
+                    } else if (request.dataType == 'text' || (response.headers.get('Content-Type') || '').toLowerCase().indexOf('text/') == 0) {
+                        return response.text();
                     } else {
                         return response;
                     }
@@ -510,7 +514,12 @@
         };
 
         self.isWebSocketSupported = function () {
-            return WebSocket != null;
+            try {
+                return WebSocket != null;
+            }
+            catch (err) {
+                return false;
+            }
         };
 
         self.openWebSocket = function () {
@@ -1295,6 +1304,9 @@
             if (!path) {
                 throw new Error("null path");
             }
+            if (typeof (path) !== 'string') {
+                throw new Error('invalid path');
+            }
 
             options = options || {};
 
@@ -1338,7 +1350,8 @@
 
             return self.ajax({
                 type: "GET",
-                url: url
+                url: url,
+                dataType: 'text'
             });
         };
 

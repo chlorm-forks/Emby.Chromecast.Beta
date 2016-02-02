@@ -139,13 +139,9 @@
 
         clearMediaElement();
 
-        if (promise) {
-            return promise;
-        }
+        promise = promise || Promise.resolve();
 
-        return new Promise(function (resolve, reject) {
-            resolve();
-        });
+        return promise;
     }
 
     window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
@@ -219,14 +215,14 @@
         else if (data.command == 'NextTrack') {
 
             if (window.playlist && window.currentPlaylistIndex < window.playlist.length - 1) {
-                stop("next");
+                playNextItem({}, true);
             }
 
         }
         else if (data.command == 'PreviousTrack') {
 
             if (window.playlist && window.currentPlaylistIndex > 0) {
-                stop("previous");
+                playPreviousItem({});
             }
 
         }
@@ -545,20 +541,24 @@
 
         var newIndex;
 
-        switch (window.repeatMode) {
+        if (window.currentPlaylistIndex == -1) {
+            newIndex = 0;
+        } else {
+            switch (window.repeatMode) {
 
-            case 'RepeatOne':
-                newIndex = window.currentPlaylistIndex;
-                break;
-            case 'RepeatAll':
-                newIndex = window.currentPlaylistIndex + 1;
-                if (newIndex >= window.playlist.length) {
-                    newIndex = 0;
-                }
-                break;
-            default:
-                newIndex = window.currentPlaylistIndex + 1;
-                break;
+                case 'RepeatOne':
+                    newIndex = window.currentPlaylistIndex;
+                    break;
+                case 'RepeatAll':
+                    newIndex = window.currentPlaylistIndex + 1;
+                    if (newIndex >= window.playlist.length) {
+                        newIndex = 0;
+                    }
+                    break;
+                default:
+                    newIndex = window.currentPlaylistIndex + 1;
+                    break;
+            }
         }
 
         if (newIndex < playlist.length) {
@@ -581,7 +581,7 @@
 
             var item = playlist[window.currentPlaylistIndex];
 
-            playItem(item, options || {}, false);
+            playItem(item, options || {}, true);
             return true;
         }
         return false;
@@ -631,6 +631,12 @@
         profile.MaxStaticBitrate = maxBitrate;
         profile.MusicStreamingTranscodingBitrate = 192000;
 
+        // This needs to be forced
+        profile.DirectPlayProfiles.push({
+            Container: "flac",
+            Type: 'Audio'
+        });
+
         profile.SubtitleProfiles = [];
         profile.SubtitleProfiles.push({
             Format: 'js',
@@ -664,7 +670,7 @@
                             embyActions.getLiveStream(item, result.PlaySessionId, maxBitrate, deviceProfile, options.startPositionTicks, mediaSource, null, null).then(function (openLiveStreamResult) {
 
                                 openLiveStreamResult.MediaSource.enableDirectPlay = supportsDirectPlay(openLiveStreamResult.MediaSource);
-                                playMediaSource(result.PlaySessionId, item, mediaSource, options);
+                                playMediaSource(result.PlaySessionId, item, openLiveStreamResult.MediaSource, options);
                             });
 
                         } else {

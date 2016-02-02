@@ -119,15 +119,15 @@
             throw new Error("null serverAddress");
         }
 
+        //console.log(JSON.stringify(getSenderReportingData($scope, options)));
+
         broadcastToMessageBus({
             type: 'playbackprogress',
             data: getSenderReportingData($scope, options)
         });
 
         if (reportToServer === false) {
-            return new Promise(function (resolve, reject) {
-                resolve();
-            });
+            return Promise.resolve();
         }
 
         var url = getUrl($scope.serverAddress, "Sessions/Playing/Progress");
@@ -236,7 +236,7 @@
             headers: getSecurityHeaders(accessToken, userId),
             dataType: 'json',
             type: 'GET',
-            params: {
+            query: {
                 SortBy: "Random",
                 IncludeItemTypes: "Movie,Series",
                 ImageTypes: 'Backdrop',
