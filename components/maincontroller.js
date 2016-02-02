@@ -637,13 +637,6 @@
             Type: 'Audio'
         });
 
-        profile.DirectPlayProfiles.push({
-            Container: "mkv,mp4",
-            VideoCodec: "h264",
-            AudioCodec: "flac",
-            Type: 'Video'
-        });
-
         profile.SubtitleProfiles = [];
         profile.SubtitleProfiles.push({
             Format: 'js',
