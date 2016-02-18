@@ -504,7 +504,7 @@
 
         for (var i = 0, length = items.length; i < length; i++) {
 
-            window.playlist.push(items[i]]);
+            window.playlist.push(items[i]);
         }
     }
 
