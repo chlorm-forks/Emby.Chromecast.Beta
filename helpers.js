@@ -744,28 +744,33 @@ function translateRequestedItems(serverAddress, accessToken, userId, items, smar
     }
     else if (smart && firstItem.Type == "Episode" && items.length == 1) {
 
-        return getEpisodesForPlayback(serverAddress, accessToken, userId, firstItem.SeriesId, {
-            IsVirtualUnaired: false,
-            IsMissing: false,
-            UserId: userId
+        return getItemsForPlayback(serverAddress, accessToken, userId, items, false).then(function(result) {
 
-        }).then(function (episodesResult) {
+            var episode = result.Items[0];
 
-            var foundItem = false;
-            episodesResult.Items = episodesResult.Items.filter(function (e) {
+            return getEpisodesForPlayback(serverAddress, accessToken, userId, episode.SeriesId, {
+                IsVirtualUnaired: false,
+                IsMissing: false,
+                UserId: userId
 
-                if (foundItem) {
-                    return true;
-                }
-                if (e.Id == firstItem.Id) {
-                    foundItem = true;
-                    return true;
-                }
+            }).then(function (episodesResult) {
 
-                return false;
+                var foundItem = false;
+                episodesResult.Items = episodesResult.Items.filter(function (e) {
+
+                    if (foundItem) {
+                        return true;
+                    }
+                    if (e.Id == episode.Id) {
+                        foundItem = true;
+                        return true;
+                    }
+
+                    return false;
+                });
+                episodesResult.TotalRecordCount = episodesResult.Items.length;
+                return episodesResult;
             });
-            episodesResult.TotalRecordCount = episodesResult.Items.length;
-            return episodesResult;
         });
     }
 
