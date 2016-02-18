@@ -744,7 +744,7 @@ function translateRequestedItems(serverAddress, accessToken, userId, items, smar
     }
     else if (smart && firstItem.Type == "Episode" && items.length == 1) {
 
-        return getItemsForPlayback(serverAddress, accessToken, userId, items, false).then(function(result) {
+        return translateRequestedItems(serverAddress, accessToken, userId, items, false).then(function (result) {
 
             var episode = result.Items[0];
 
