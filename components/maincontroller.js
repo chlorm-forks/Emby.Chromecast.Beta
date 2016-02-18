@@ -501,7 +501,11 @@
     }
 
     function queue(items, method) {
-        window.playlist.push(items);
+
+        for (var i = 0, length = items.length; i < length; i++) {
+
+            window.playlist.push(items[i]]);
+        }
     }
 
     function playFromOptions(options) {
@@ -569,7 +573,7 @@
         if (newIndex < playlist.length) {
             window.currentPlaylistIndex = newIndex;
 
-            var item = playlist[window.currentPlaylistIndex];
+            var item = playlist[newIndex];
 
             playItem(item, options || {}, stopPlayer);
             return true;
