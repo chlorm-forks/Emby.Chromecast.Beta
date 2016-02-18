@@ -1,4 +1,4 @@
-﻿define(['historyManager', 'focusManager', 'performanceManager', 'browser', 'paper-dialog', 'scale-up-animation', 'fade-out-animation', 'fade-in-animation', 'css!./paperdialoghelper.css'], function (historyManager, focusManager, performanceManager, browser) {
+﻿define(['historyManager', 'focusManager', 'performanceManager', 'browser', 'layoutManager', 'paper-dialog', 'scale-up-animation', 'fade-out-animation', 'fade-in-animation', 'css!./paperdialoghelper.css'], function (historyManager, focusManager, performanceManager, browser, layoutManager) {
 
     function paperDialogHashHandler(dlg, hash, resolve) {
 
@@ -54,6 +54,13 @@
 
         dlg.addEventListener('iron-overlay-closed', onDialogClosed);
         dlg.open();
+
+        // It's not being positioned properly in firefox
+        if (!browser.chrome && !dlg.classList.contains('fixedSize')) {
+            setTimeout(function () {
+                dlg.refit();
+            }, 100);
+        }
 
         if (dlg.getAttribute('data-lockscroll') == 'true' && !document.body.classList.contains('noScroll')) {
             document.body.classList.add('noScroll');
@@ -158,12 +165,21 @@
             }
         };
 
+        // too buggy in IE, not even worth it
+        if (browser.msie) {
+            dlg.animationConfig = null;
+            dlg.entryAnimation = null;
+            dlg.exitAnimation = null;
+        }
+
         dlg.classList.add('paperDialog');
 
         dlg.classList.add('scrollY');
 
-        // TODO: Don't hide for mouse?
-        dlg.classList.add('hiddenScroll');
+        if (layoutManager.tv || layoutManager.mobile) {
+            // Need scrollbars for mouse use
+            dlg.classList.add('hiddenScroll');
+        }
 
         if (options.removeOnClose) {
             dlg.setAttribute('data-removeonclose', 'true');
