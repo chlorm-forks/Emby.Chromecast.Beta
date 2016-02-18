@@ -744,7 +744,11 @@ function translateRequestedItems(serverAddress, accessToken, userId, items, smar
     }
     else if (smart && firstItem.Type == "Episode" && items.length == 1) {
 
-        return translateRequestedItems(serverAddress, accessToken, userId, items, false).then(function (result) {
+        return getItemsForPlayback(serverAddress, accessToken, userId, {
+            
+            Ids: firstItem.Id
+
+        }).then(function (result) {
 
             var episode = result.Items[0];
 
@@ -774,10 +778,7 @@ function translateRequestedItems(serverAddress, accessToken, userId, items, smar
         });
     }
 
-    return new Promise(function (resolve, reject) {
-
-        resolve({ Items: items });
-    });
+    return Promise.resolve({ Items: items });
 }
 
 function getMiscInfoHtml(item, datetime) {
