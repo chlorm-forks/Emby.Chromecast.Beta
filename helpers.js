@@ -16,7 +16,7 @@ function getUrl(serverAddress, name) {
 }
 
 function getCurrentPositionTicks($scope) {
-    
+
     var positionTicks = window.mediaElement.currentTime * 10000000;
 
     if (!$scope.canClientSeek) {
@@ -163,6 +163,7 @@ function resetPlaybackScope($scope) {
 
     $scope.audioStreamIndex = null;
     $scope.subtitleStreamIndex = null;
+    $scope.mediaSource = null;
     $scope.mediaSourceId = '';
     $scope.PlaybackMediaSource = null;
 
@@ -261,7 +262,7 @@ function setMetadata(item, metadata, datetime) {
         }
 
         if (item.PremiereDate) {
-            metadata.releaseDate = parseISO8601Date(item.PremiereDate).toISOString();
+            metadata.releaseDate = datetime.parseISO8601Date(item.PremiereDate).toISOString();
         }
     }
 
@@ -274,7 +275,7 @@ function setMetadata(item, metadata, datetime) {
         }
 
         if (item.PremiereDate) {
-            metadata.releaseDate = parseISO8601Date(item.PremiereDate).toISOString();
+            metadata.releaseDate = datetime.parseISO8601Date(item.PremiereDate).toISOString();
         }
     }
 
@@ -334,6 +335,10 @@ function createStreamInfo(item, mediaSource, startPosition) {
 
                     contentType = 'video/' + mediaSource.TranscodingContainer;
                     streamContainer = mediaSource.TranscodingContainer;
+
+                    if (mediaUrl.toLowerCase().indexOf('copytimestamps=true') != -1) {
+                        startPosition = 0;
+                    }
                 }
             }
         }
@@ -702,6 +707,18 @@ function getIntros(serverAddress, accessToken, userId, firstItem) {
     });
 }
 
+function getUser(serverAddress, accessToken, userId) {
+
+    var url = getUrl(serverAddress, 'Users/' + userId);
+
+    return fetchhelper.ajax({
+        url: url,
+        dataType: 'json',
+        headers: getSecurityHeaders(accessToken, userId),
+        type: 'GET'
+    });
+}
+
 function translateRequestedItems(serverAddress, accessToken, userId, items, smart) {
 
     var firstItem = items[0];
@@ -744,36 +761,44 @@ function translateRequestedItems(serverAddress, accessToken, userId, items, smar
     }
     else if (smart && firstItem.Type == "Episode" && items.length == 1) {
 
-        return getItemsForPlayback(serverAddress, accessToken, userId, {
-            
-            Ids: firstItem.Id
+        return getUser(serverAddress, accessToken, userId).then(function (user) {
 
-        }).then(function (result) {
+            if (!user.Configuration.EnableNextEpisodeAutoPlay) {
 
-            var episode = result.Items[0];
+                return { Items: items };
+            }
 
-            return getEpisodesForPlayback(serverAddress, accessToken, userId, episode.SeriesId, {
-                IsVirtualUnaired: false,
-                IsMissing: false,
-                UserId: userId
+            return getItemsForPlayback(serverAddress, accessToken, userId, {
 
-            }).then(function (episodesResult) {
+                Ids: firstItem.Id
 
-                var foundItem = false;
-                episodesResult.Items = episodesResult.Items.filter(function (e) {
+            }).then(function (result) {
 
-                    if (foundItem) {
-                        return true;
-                    }
-                    if (e.Id == episode.Id) {
-                        foundItem = true;
-                        return true;
-                    }
+                var episode = result.Items[0];
 
-                    return false;
+                return getEpisodesForPlayback(serverAddress, accessToken, userId, episode.SeriesId, {
+                    IsVirtualUnaired: false,
+                    IsMissing: false,
+                    UserId: userId
+
+                }).then(function (episodesResult) {
+
+                    var foundItem = false;
+                    episodesResult.Items = episodesResult.Items.filter(function (e) {
+
+                        if (foundItem) {
+                            return true;
+                        }
+                        if (e.Id == episode.Id) {
+                            foundItem = true;
+                            return true;
+                        }
+
+                        return false;
+                    });
+                    episodesResult.TotalRecordCount = episodesResult.Items.length;
+                    return episodesResult;
                 });
-                episodesResult.TotalRecordCount = episodesResult.Items.length;
-                return episodesResult;
             });
         });
     }
