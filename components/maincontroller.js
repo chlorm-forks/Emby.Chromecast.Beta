@@ -118,11 +118,7 @@
         }
     };
 
-    function stop(nextMode, callDefaultOnStop) {
-
-        if (callDefaultOnStop !== false) {
-            mgr.defaultOnStop(event);
-        }
+    function stop(nextMode) {
 
         embyActions.stop($scope);
         enableTimeUpdateListener(false);
@@ -162,6 +158,11 @@
     // app to add items to a playlist
     window.playlistMessageBus = window.castReceiverManager.getCastMessageBus('urn:x-cast:com.connectsdk', cast.receiver.CastMessageBus.MessageType.JSON);
 
+    function cleanName(name) {
+        
+        return name.replace(/[^\w\s]/gi, '');
+    }
+
     function processMessage(data) {
 
         if (!data.command || !data.serverAddress || !data.userId || !data.accessToken) {
@@ -180,8 +181,9 @@
         $scope.serverAddress = data.serverAddress;
 
         data.options = data.options || {};
-        window.deviceInfo.deviceName = data.receiverName || window.deviceInfo.deviceName;
-        window.deviceInfo.deviceId = data.receiverName ? CryptoJS.SHA1(data.receiverName).toString() : window.deviceInfo.deviceId;
+        var cleanReceiverName = cleanName(data.receiverName || '');
+        window.deviceInfo.deviceName = cleanReceiverName || window.deviceInfo.deviceName;
+        window.deviceInfo.deviceId = cleanReceiverName ? CryptoJS.SHA1(cleanReceiverName).toString() : window.deviceInfo.deviceId;
 
         if (data.maxBitrate) {
             window.MaxBitrate = data.maxBitrate;
@@ -189,7 +191,7 @@
 
         // Items will have properties - Id, Name, Type, MediaType, IsFolder
 
-        var reportProgress = false;
+        var reportEventType;
 
         if (data.command == 'PlayLast' || data.command == 'PlayNext') {
 
@@ -236,17 +238,18 @@
         else if (data.command == 'VolumeUp') {
 
             window.mediaElement.volume = Math.min(1, window.mediaElement.volume + .2);
-            reportProgress = true;
+            reportEventType = 'volumechange';
         }
         else if (data.command == 'VolumeDown') {
 
             // TODO
             window.mediaElement.volume = Math.max(0, window.mediaElement.volume - .2);
-            reportProgress = true;
+            reportEventType = 'volumechange';
         }
         else if (data.command == 'ToggleMute') {
 
             // TODO
+            reportEventType = 'volumechange';
 
         }
         else if (data.command == 'Identify') {
@@ -259,7 +262,7 @@
 
             // Scale 0-100
             window.mediaElement.volume = data.options.volume / 100;
-            reportProgress = true;
+            reportEventType = 'volumechange';
         }
         else if (data.command == 'Seek') {
             seek(data.options.position * 10000000);
@@ -280,12 +283,12 @@
             } else {
                 window.mediaElement.pause();
             }
-            reportProgress = true;
+            reportEventType = 'playstatechange';
         }
         else if (data.command == 'Pause') {
 
             window.mediaElement.pause();
-            reportProgress = true;
+            reportEventType = 'playstatechange';
         }
         else if (data.command == 'SetRepeatMode') {
 
@@ -295,15 +298,21 @@
         else if (data.command == 'Unpause') {
 
             window.mediaElement.play();
-            reportProgress = true;
+            reportEventType = 'playstatechange';
         }
         else {
 
             translateItems(data, data.options, data.options.items, 'play');
         }
 
-        if (reportProgress) {
-            embyActions.reportPlaybackProgress($scope, getReportingParams($scope));
+        if (reportEventType) {
+
+            var report = function() {
+                embyActions.reportPlaybackProgress($scope, getReportingParams($scope));
+            };
+            embyActions.reportPlaybackProgress($scope, getReportingParams($scope), true, reportEventType);
+            setTimeout(report, 100);
+            setTimeout(report, 500);
         }
     }
 
@@ -628,7 +637,7 @@
 
         if (stopPlayer) {
 
-            stop("none", false).then(callback);
+            stop("none").then(callback);
         }
         else {
             callback();
