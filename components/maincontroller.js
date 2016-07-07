@@ -860,6 +860,7 @@
         var streamInfo = createStreamInfo(item, mediaSource, options.startPositionTicks);
 
         var url = streamInfo.url;
+        console.log('setting setTextTrack to ' + (streamInfo.subtitleStreamUrl || ''));
         setTextTrack($scope, streamInfo.subtitleStreamUrl);
 
         var mediaInfo = {
@@ -899,6 +900,7 @@
 
         mediaElement.autoplay = autoplay;
 
+        console.log('setting src to ' + url);
         window.mediaElement.src = url;
         window.mediaElement.autoplay = true;
         $scope.mediaSource = mediaSource;
