@@ -408,7 +408,11 @@
     factory.delayStart = function ($scope) {
         delayStartPromise = setTimeout(function () {
 
+            console.log('reporting playback start');
+
             factory.reportPlaybackStart($scope, getReportingParams($scope)).then(function () {
+
+                console.log('calling mediaElement.play');
                 window.mediaElement.play();
                 setAppStatus('playing-with-controls');
                 if ($scope.mediaType == "Audio") {
