@@ -1,4 +1,31 @@
-﻿define(['historyManager', 'focusManager', 'browser', 'layoutManager', 'inputManager', 'css!./dialoghelper.css'], function (historyManager, focusManager, browser, layoutManager, inputManager) {
+﻿define(['historyManager', 'focusManager', 'browser', 'layoutManager', 'inputManager', 'dom', 'css!./dialoghelper.css', 'scrollStyles'], function (historyManager, focusManager, browser, layoutManager, inputManager, dom) {
+
+    var globalOnOpenCallback;
+
+    function enableAnimation() {
+
+        if (browser.animate) {
+            return true;
+        }
+
+        if (browser.edge) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function removeCenterFocus(dlg) {
+
+        if (layoutManager.tv) {
+            if (dlg.classList.contains('smoothScrollX')) {
+                centerFocus(dlg, true, false);
+            }
+            else if (dlg.classList.contains('smoothScrollY')) {
+                centerFocus(dlg, false, false);
+            }
+        }
+    }
 
     function dialogHashHandler(dlg, hash, resolve) {
 
@@ -24,8 +51,6 @@
         function onBackCommand(e) {
 
             if (e.detail.command == 'back') {
-                inputManager.off(dlg, onBackCommand);
-
                 self.closedByBack = true;
                 closeDialog(dlg);
                 e.preventDefault();
@@ -34,15 +59,18 @@
 
         function onDialogClosed() {
 
+            if (!isHistoryEnabled(dlg)) {
+                inputManager.off(dlg, onBackCommand);
+            }
+
+            window.removeEventListener('popstate', onHashChange);
+
             removeBackdrop(dlg);
             dlg.classList.remove('opened');
 
             if (removeScrollLockOnClose) {
                 document.body.classList.remove('noScroll');
             }
-
-            window.removeEventListener('popstate', onHashChange);
-            inputManager.off(dlg, onBackCommand);
 
             if (!self.closedByBack && isHistoryEnabled(dlg)) {
                 var state = history.state || {};
@@ -54,6 +82,7 @@
             activeElement.focus();
 
             if (dlg.getAttribute('data-removeonclose') == 'true') {
+                removeCenterFocus(dlg);
                 dlg.parentNode.removeChild(dlg);
             }
 
@@ -69,7 +98,7 @@
 
         dlg.addEventListener('close', onDialogClosed);
 
-        var center = !dlg.classList.contains('fixedSize');
+        var center = !dlg.classList.contains('dialog-fixedSize');
         if (center) {
             dlg.classList.add('centeredDialog');
         }
@@ -95,16 +124,13 @@
         if (center) {
             centerDialog(dlg);
         }
-        animateDialogOpen(dlg);
-
-        if (dlg.getAttribute('data-autofocus') == 'true') {
-            autoFocus(dlg);
-        }
 
         if (dlg.getAttribute('data-lockscroll') == 'true' && !document.body.classList.contains('noScroll')) {
             document.body.classList.add('noScroll');
             removeScrollLockOnClose = true;
         }
+
+        animateDialogOpen(dlg);
 
         if (isHistoryEnabled(dlg)) {
             historyManager.pushState({ dialogId: hash }, "Dialog", hash);
@@ -115,28 +141,15 @@
         }
     }
 
-    function parentWithTag(elem, tagName) {
-
-        while (elem.tagName != tagName) {
-            elem = elem.parentNode;
-
-            if (!elem) {
-                return null;
-            }
-        }
-
-        return elem;
-    }
-
     function closeOnBackdropClick(dlg) {
 
         dlg.addEventListener('click', function (event) {
             var rect = dlg.getBoundingClientRect();
-            var isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height
-              && rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
+            var isInDialog = (rect.top <= event.clientY && event.clientY <= (rect.top + rect.height)
+              && rect.left <= event.clientX && event.clientX <= (rect.left + rect.width));
 
             if (!isInDialog) {
-                if (parentWithTag(event.target, 'SELECT')) {
+                if (dom.parentWithTag(event.target, 'SELECT')) {
                     isInDialog = true;
                 }
             }
@@ -151,16 +164,9 @@
 
         // The dialog may have just been created and webComponents may not have completed initialiazation yet.
         // Without this, seeing some script errors in Firefox
+        // Also for some reason it won't auto-focus without a delay here, still investigating that
 
-        var delay = browser.animate ? 0 : 500;
-        if (!delay) {
-            focusManager.autoFocus(dlg);
-            return;
-        }
-
-        setTimeout(function () {
-            focusManager.autoFocus(dlg);
-        }, delay);
+        focusManager.autoFocus(dlg);
     }
 
     function safeBlur(el) {
@@ -173,12 +179,12 @@
 
         var backdrop = document.createElement('div');
         backdrop.classList.add('dialogBackdrop');
-        dlg.parentNode.insertBefore(backdrop, dlg.nextSibling);
+        dlg.parentNode.insertBefore(backdrop, dlg);
         dlg.backdrop = backdrop;
 
         // Doing this immediately causes the opacity to jump immediately without animating
         setTimeout(function () {
-            backdrop.classList.add('opened');
+            backdrop.classList.add('dialogBackdropOpened');
         }, 0);
 
         backdrop.addEventListener('click', function () {
@@ -191,6 +197,10 @@
     }
 
     function open(dlg) {
+
+        if (globalOnOpenCallback) {
+            globalOnOpenCallback(dlg);
+        }
 
         return new Promise(function (resolve, reject) {
 
@@ -219,7 +229,16 @@
 
         var keyframes = [
           { transform: 'scale(0)', offset: 0 },
-          { transform: 'scale(1,1)', offset: 1 }];
+          { transform: 'none', offset: 1 }];
+        var timing = elem.animationConfig.entry.timing;
+        return elem.animate(keyframes, timing).onfinish = onFinish;
+    }
+
+    function slideUp(elem, onFinish) {
+
+        var keyframes = [
+          { transform: 'translate3d(0,30%,0)', opacity: 0, offset: 0 },
+          { transform: 'none', opacity: 1, offset: 1 }];
         var timing = elem.animationConfig.entry.timing;
         return elem.animate(keyframes, timing).onfinish = onFinish;
     }
@@ -233,6 +252,15 @@
         return elem.animate(keyframes, timing).onfinish = onFinish;
     }
 
+    function scaleDown(elem) {
+
+        var keyframes = [
+          { transform: 'none', opacity: 1, offset: 0 },
+          { transform: 'scale(0)', opacity: 0, offset: 1 }];
+        var timing = elem.animationConfig.exit.timing;
+        return elem.animate(keyframes, timing);
+    }
+
     function fadeOut(elem) {
 
         var keyframes = [
@@ -242,11 +270,22 @@
         return elem.animate(keyframes, timing);
     }
 
+    function slideDown(elem, onFinish) {
+
+        var keyframes = [
+          { transform: 'none', opacity: 1, offset: 0 },
+          { transform: 'translate3d(0,30%,0)', opacity: 0, offset: 1 }];
+        var timing = elem.animationConfig.entry.timing;
+        return elem.animate(keyframes, timing);
+    }
+
     function closeDialog(dlg) {
 
         if (!dlg.classList.contains('hide')) {
 
             var onAnimationFinish = function () {
+                focusManager.popScope(dlg);
+
                 dlg.classList.add('hide');
                 if (dlg.close) {
                     dlg.close();
@@ -262,23 +301,42 @@
                 return;
             }
 
-            fadeOut(dlg).onfinish = onAnimationFinish;
+            var animation;
+
+            if (dlg.animationConfig.exit.name == 'fadeout') {
+                animation = fadeOut(dlg);
+            } else if (dlg.animationConfig.exit.name == 'scaledown') {
+                animation = scaleDown(dlg);
+            } else if (dlg.animationConfig.exit.name == 'slidedown') {
+                animation = slideDown(dlg);
+            } else {
+                onAnimationFinish();
+                return;
+            }
+
+            animation.onfinish = onAnimationFinish;
         }
     }
 
     function animateDialogOpen(dlg) {
 
-        var onAnimationFinish = function() {
+        var onAnimationFinish = function () {
+            focusManager.pushScope(dlg);
+            if (dlg.getAttribute('data-autofocus') == 'true') {
+                autoFocus(dlg);
+            }
         };
 
         if (!dlg.animationConfig || !dlg.animate) {
             onAnimationFinish();
             return;
         }
-        if (dlg.animationConfig.entry.name == 'fade-in-animation') {
+        if (dlg.animationConfig.entry.name == 'fadein') {
             fadeIn(dlg, onAnimationFinish);
-        } else if (dlg.animationConfig.entry.name == 'scale-up-animation') {
+        } else if (dlg.animationConfig.entry.name == 'scaleup') {
             scaleUp(dlg, onAnimationFinish);
+        } else if (dlg.animationConfig.entry.name == 'slideup') {
+            slideUp(dlg, onAnimationFinish);
         }
     }
 
@@ -292,7 +350,7 @@
             return true;
         }
 
-        return browser.mobile;
+        return browser.touch;
     }
 
     function centerDialog(dlg) {
@@ -308,7 +366,7 @@
         if (backdrop) {
             dlg.backdrop = null;
 
-            backdrop.classList.remove('opened');
+            backdrop.classList.remove('dialogBackdropOpened');
 
             setTimeout(function () {
                 backdrop.parentNode.removeChild(backdrop);
@@ -316,18 +374,23 @@
         }
     }
 
+    function centerFocus(elem, horiz, on) {
+        require(['scrollHelper'], function (scrollHelper) {
+            var fn = on ? 'on' : 'off';
+            scrollHelper.centerFocus[fn](elem, horiz);
+        });
+    }
+
     function createDialog(options) {
 
         options = options || {};
 
-        var dlg = document.createElement('dialog');
-
         // If there's no native dialog support, use a plain div
         // Also not working well in samsung tizen browser, content inside not clickable
-        if (!dlg.showModal || browser.tv) {
-            dlg = document.createElement('div');
-        }
+        // Just go ahead and always use a plain div because we're seeing issues overlaying absoltutely positioned content over a modal dialog
+        var dlg = document.createElement('div');
 
+        dlg.classList.add('focuscontainer');
         dlg.classList.add('hide');
 
         if (shouldLockDocumentScroll(options)) {
@@ -350,42 +413,57 @@
             dlg.setAttribute('data-autofocus', 'true');
         }
 
-        var defaultEntryAnimation = browser.animate ? 'scale-up-animation' : 'fade-in-animation';
-        dlg.entryAnimation = options.entryAnimation || defaultEntryAnimation;
-        dlg.exitAnimation = 'fade-out-animation';
+        var defaultEntryAnimation = 'scaleup';
+        var entryAnimation = options.entryAnimation || defaultEntryAnimation;
+        var defaultExitAnimation = 'scaledown';
+        var exitAnimation = options.exitAnimation || defaultExitAnimation;
 
         // If it's not fullscreen then lower the default animation speed to make it open really fast
-        var entryAnimationDuration = options.entryAnimationDuration || (options.size ? 240 : 300);
+        var entryAnimationDuration = options.entryAnimationDuration || (options.size ? 200 : 300);
+        var exitAnimationDuration = options.exitAnimationDuration || (options.size ? 200 : 300);
 
         dlg.animationConfig = {
             // scale up
             'entry': {
-                name: dlg.entryAnimation,
+                name: entryAnimation,
                 node: dlg,
-                timing: { duration: entryAnimationDuration, easing: 'ease-out' }
+                timing: {
+                    duration: entryAnimationDuration,
+                    easing: 'ease-out'
+                }
             },
             // fade out
             'exit': {
-                name: dlg.exitAnimation,
+                name: exitAnimation,
                 node: dlg,
-                timing: { duration: options.exitAnimationDuration || 300, easing: 'ease-in' }
+                timing: {
+                    duration: exitAnimationDuration,
+                    easing: 'ease-out',
+                    fill: 'both'
+                }
             }
         };
 
         // too buggy in IE, not even worth it
-        if (!browser.animate) {
+        if (!enableAnimation()) {
             dlg.animationConfig = null;
-            dlg.entryAnimation = null;
-            dlg.exitAnimation = null;
         }
 
         dlg.classList.add('dialog');
 
-        dlg.classList.add('scrollY');
+        if (options.scrollX) {
+            dlg.classList.add('smoothScrollX');
 
-        if (layoutManager.tv || layoutManager.mobile) {
-            // Need scrollbars for mouse use
-            dlg.classList.add('hiddenScroll');
+            if (layoutManager.tv) {
+                centerFocus(dlg, true, true);
+            }
+        }
+        else if (options.scrollY !== false) {
+            dlg.classList.add('smoothScrollY');
+
+            if (layoutManager.tv) {
+                centerFocus(dlg, false, true);
+            }
         }
 
         if (options.removeOnClose) {
@@ -393,8 +471,8 @@
         }
 
         if (options.size) {
-            dlg.classList.add('fixedSize');
-            dlg.classList.add(options.size);
+            dlg.classList.add('dialog-fixedSize');
+            dlg.classList.add('dialog-' + options.size);
         }
 
         return dlg;
@@ -403,6 +481,9 @@
     return {
         open: open,
         close: close,
-        createDialog: createDialog
+        createDialog: createDialog,
+        setOnOpen: function (val) {
+            globalOnOpenCallback = val;
+        }
     };
 });
