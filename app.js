@@ -82,7 +82,7 @@ function initRequire(customPaths) {
 
     var config = {
 
-        waitSeconds: 30,
+        waitSeconds: 0,
         urlArgs: urlArgs,
 
         paths: paths,
@@ -108,6 +108,26 @@ function initRequire(customPaths) {
 
     define("cryptojs-sha1", [sha1Path]);
     define("cryptojs-md5", [md5Path]);
+
+    // mock this for now. not used in this app
+    define("globalize", [], function () {
+        return {
+            getCurrentLocale: function () {
+
+                if (navigator.language) {
+                    return navigator.language;
+                }
+                if (navigator.userLanguage) {
+                    return navigator.userLanguage;
+                }
+                if (navigator.languages && navigator.languages.length) {
+                    return navigator.languages[0];
+                }
+
+                return 'en-us';
+            }
+        };
+    });
 }
 
 function startApp() {
