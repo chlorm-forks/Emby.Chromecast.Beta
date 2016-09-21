@@ -56,13 +56,11 @@ function initRequire(customPaths) {
         browserdeviceprofile: embyWebComponentsBowerPath + "/browserdeviceprofile",
         browser: embyWebComponentsBowerPath + "/browser",
         qualityoptions: embyWebComponentsBowerPath + "/qualityoptions",
-        isMobile: "bower_components/isMobile/isMobile.min",
         embyactions: 'components/embyactions',
         maincontroller: 'components/maincontroller',
         events: 'bower_components/emby-apiclient/events',
         credentialprovider: 'bower_components/emby-apiclient/credentials',
         apiclient: 'bower_components/emby-apiclient/apiclient',
-        connectservice: 'bower_components/emby-apiclient/connectservice',
         serverdiscovery: "bower_components/emby-apiclient/serverdiscovery",
         wakeonlan: "bower_components/emby-apiclient/wakeonlan",
         fetchhelper: embyWebComponentsBowerPath + "/fetchhelper"

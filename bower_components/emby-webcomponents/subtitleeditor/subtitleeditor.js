@@ -68,7 +68,14 @@
 
         require(['confirm'], function (confirm) {
 
-            confirm(msg, globalize.translate('sharedcomponents#ConfirmDeletion')).then(function () {
+            confirm({
+
+                title: globalize.translate('sharedcomponents#ConfirmDeletion'),
+                text: msg,
+                confirmText: globalize.translate('sharedcomponents#Delete'),
+                primary: 'cancel'
+
+            }).then(function () {
 
                 loading.show();
 
@@ -117,7 +124,11 @@
                 var itemHtml = '';
 
                 var tagName = layoutManager.tv ? 'button' : 'div';
-                var className = layoutManager.tv && s.Path ? 'listItem listItem-focusscale btnDelete' : 'listItem';
+                var className = layoutManager.tv && s.Path ? 'listItem btnDelete' : 'listItem';
+
+                if (layoutManager.tv) {
+                    className += ' listItem-focusscale listItem-button';
+                }
 
                 className += ' listItem-noborder';
 
@@ -236,6 +247,9 @@
 
             var tagName = layoutManager.tv ? 'button' : 'div';
             var className = layoutManager.tv ? 'listItem btnOptions' : 'listItem';
+            if (layoutManager.tv) {
+                className += ' listItem-focusscale listItem-button';
+            }
 
             html += '<' + tagName + ' class="' + className + '" data-subid="' + result.Id + '">';
 
@@ -422,7 +436,6 @@
             dlg.classList.add('subtitleEditorDialog');
 
             dlg.innerHTML = globalize.translateDocument(template, 'sharedcomponents');
-            document.body.appendChild(dlg);
 
             dlg.querySelector('.originalSubtitleFileLabel').innerHTML = globalize.translate('sharedcomponents#File');
 

@@ -87,6 +87,34 @@
         }
     }
 
+    function hasKeyboard(browser) {
+
+        if (browser.touch) {
+            return true;
+        }
+
+        if (browser.xboxOne) {
+            return true;
+        }
+
+        if (browser.ps4) {
+            return true;
+        }
+
+        if (browser.edgeUwp) {
+            // This is OK for now, but this won't always be true
+            // Should we use this?
+            // https://gist.github.com/wagonli/40d8a31bd0d6f0dd7a5d
+            return true;
+        }
+
+        if (browser.tv) {
+            return true;
+        }
+
+        return false;
+    }
+
     var uaMatch = function (ua) {
         ua = ua.toLowerCase();
 
@@ -161,6 +189,7 @@
     browser.animate = document.documentElement.animate != null;
     browser.tizen = userAgent.toLowerCase().indexOf('tizen') != -1 || userAgent.toLowerCase().indexOf('smarthub') != -1;
     browser.web0s = userAgent.toLowerCase().indexOf('Web0S'.toLowerCase()) != -1;
+    browser.edgeUwp = browser.edge && userAgent.toLowerCase().indexOf('msapphost') != -1;
 
     browser.tv = isTv();
     browser.operaTv = browser.tv && userAgent.toLowerCase().indexOf('opr/') != -1;
@@ -176,6 +205,8 @@
     if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
         browser.touch = true;
     }
+
+    browser.keyboard = hasKeyboard(browser);
 
     return browser;
 });

@@ -71,18 +71,23 @@ define([], function () {
     }
 
     var windowSize;
-    function resetWindowSize() {
-        windowSize = {
-            innerHeight: window.innerHeight,
-            innerWidth: window.innerWidth
-        };
+    var windowSizeEventsBound;
+    function clearWindowSize() {
+        windowSize = null;
     }
 
     function getWindowSize() {
         if (!windowSize) {
-            resetWindowSize();
-            addEventListenerWithOptions(window, "orientationchange", resetWindowSize, { passive: true });
-            addEventListenerWithOptions(window, 'resize', resetWindowSize, { passive: true });
+            windowSize = {
+                innerHeight: window.innerHeight,
+                innerWidth: window.innerWidth
+            };
+
+            if (!windowSizeEventsBound) {
+                windowSizeEventsBound = true;
+                addEventListenerWithOptions(window, "orientationchange", clearWindowSize, { passive: true });
+                addEventListenerWithOptions(window, 'resize', clearWindowSize, { passive: true });
+            }
         }
 
         return windowSize;

@@ -5,6 +5,15 @@ define(['browser'], function (browser) {
         return !!(v.canPlayType && v.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"').replace(/no/, ''));
     }
 
+    function canPlayH265() {
+
+        if (browser.tizen) {
+            return true;
+        }
+
+        return false;
+    }
+
     var _supportsTextTracks;
     function supportsTextTracks() {
 
@@ -37,7 +46,7 @@ define(['browser'], function (browser) {
     }
 
     function canPlayHlsWithMSE() {
-        if (window.MediaSource != null && !browser.firefox) {
+        if (window.MediaSource != null) {
             // text tracks don’t work with this in firefox
             return true;
         }
@@ -53,7 +62,7 @@ define(['browser'], function (browser) {
             if (browser.tizen) {
                 return true;
             }
-            if (isEdgeUniversal()) {
+            if (browser.edgeUwp) {
                 return true;
             }
         }
@@ -62,7 +71,7 @@ define(['browser'], function (browser) {
             if (browser.tizen) {
                 return true;
             }
-            if (isEdgeUniversal()) {
+            if (browser.edgeUwp) {
                 return true;
             }
         }
@@ -85,19 +94,6 @@ define(['browser'], function (browser) {
 
         if (document.createElement('audio').canPlayType(typeString).replace(/no/, '')) {
             return true;
-        }
-
-        return false;
-    }
-
-    function isEdgeUniversal() {
-
-        if (browser.edge) {
-
-            var userAgent = navigator.userAgent.toLowerCase();
-            if (userAgent.indexOf('msapphost') != -1) {
-                return true;
-            }
         }
 
         return false;
@@ -132,7 +128,7 @@ define(['browser'], function (browser) {
             return true;
         }
 
-        if (isEdgeUniversal()) {
+        if (browser.edgeUwp) {
 
             return true;
         }
@@ -153,15 +149,15 @@ define(['browser'], function (browser) {
         switch (container) {
 
             case 'asf':
-                supported = browser.tizen || isEdgeUniversal();
+                supported = browser.tizen || browser.edgeUwp;
                 videoAudioCodecs = [];
                 break;
             case 'avi':
-                supported = isEdgeUniversal();
+                supported = browser.edgeUwp;
                 break;
             case 'mpg':
             case 'mpeg':
-                supported = isEdgeUniversal();
+                supported = browser.edgeUwp;
                 break;
             case '3gp':
             case 'flv':
@@ -172,17 +168,17 @@ define(['browser'], function (browser) {
                 supported = browser.tizen;
                 break;
             case 'mov':
-                supported = browser.chrome || isEdgeUniversal();
+                supported = browser.chrome || browser.edgeUwp;
                 break;
             case 'm2ts':
-                supported = browser.tizen || browser.web0s || isEdgeUniversal();
+                supported = browser.tizen || browser.web0s || browser.edgeUwp;
                 break;
             case 'wmv':
-                supported = browser.tizen || browser.web0s || isEdgeUniversal();
+                supported = browser.tizen || browser.web0s || browser.edgeUwp;
                 videoAudioCodecs = [];
                 break;
             case 'ts':
-                supported = browser.tizen || browser.web0s || isEdgeUniversal();
+                supported = browser.tizen || browser.web0s || browser.edgeUwp;
                 profileContainer = 'ts,mpegts';
                 break;
             default:
@@ -201,6 +197,10 @@ define(['browser'], function (browser) {
     }
 
     function getMaxBitrate() {
+
+        if (browser.edgeUwp) {
+            return 22000000;
+        }
 
         // 10mbps
         if (browser.xboxOne) {
@@ -257,16 +257,14 @@ define(['browser'], function (browser) {
 
         // Only put mp3 first if mkv support is there
         // Otherwise with HLS and mp3 audio we're seeing some browsers
-        if (videoTestElement.canPlayType('audio/mp4; codecs="ac-3"').replace(/no/, '') || isEdgeUniversal()) {
-            // safari is lying
-            if (!browser.safari) {
-                videoAudioCodecs.push('ac3');
+        // safari is lying
+        if ((videoTestElement.canPlayType('audio/mp4; codecs="ac-3"').replace(/no/, '') && !browser.safari) || browser.edgeUwp || browser.tizen) {
+            videoAudioCodecs.push('ac3');
 
-                // This works in edge desktop, but not mobile
-                // TODO: Retest this on mobile
-                if (!browser.edge || !browser.touch) {
-                    hlsVideoAudioCodecs.push('ac3');
-                }
+            // This works in edge desktop, but not mobile
+            // TODO: Retest this on mobile
+            if (!browser.edge || !browser.touch) {
+                hlsVideoAudioCodecs.push('ac3');
             }
         }
 
@@ -275,42 +273,55 @@ define(['browser'], function (browser) {
             if (supportsMp3VideoAudio) {
                 mp3Added = true;
                 videoAudioCodecs.push('mp3');
-                hlsVideoAudioCodecs.push('mp3');
             }
         }
         if (videoTestElement.canPlayType('video/mp4; codecs="avc1.640029, mp4a.40.2"').replace(/no/, '')) {
             videoAudioCodecs.push('aac');
             hlsVideoAudioCodecs.push('aac');
         }
-        if (!mp3Added && supportsMp3VideoAudio) {
-            videoAudioCodecs.push('mp3');
+        if (supportsMp3VideoAudio) {
+            if (!mp3Added) {
+                videoAudioCodecs.push('mp3');
+            }
             hlsVideoAudioCodecs.push('mp3');
         }
 
-        if (isEdgeUniversal()) {
-            //videoAudioCodecs.push('dca');
-            //videoAudioCodecs.push('dts');
+        if (browser.tizen) {
+            videoAudioCodecs.push('dca');
+            videoAudioCodecs.push('dts');
+        }
+
+        if (browser.edgeUwp) {
             //videoAudioCodecs.push('truehd');
         }
 
+        var mp4VideoCodecs = [];
         if (canPlayH264()) {
+            mp4VideoCodecs.push('h264');
+        }
+        if (canPlayH265()) {
+            mp4VideoCodecs.push('h265');
+            mp4VideoCodecs.push('hevc');
+        }
+
+        if (mp4VideoCodecs.length) {
             profile.DirectPlayProfiles.push({
                 Container: 'mp4,m4v',
                 Type: 'Video',
-                VideoCodec: 'h264',
+                VideoCodec: mp4VideoCodecs.join(','),
                 AudioCodec: videoAudioCodecs.join(',')
             });
         }
 
-        if (canPlayMkv) {
+        if (canPlayMkv && mp4VideoCodecs.length) {
             profile.DirectPlayProfiles.push({
                 Container: 'mkv',
                 Type: 'Video',
-                VideoCodec: 'h264',
+                VideoCodec: mp4VideoCodecs.join(','),
                 AudioCodec: videoAudioCodecs.join(',')
             });
 
-            if (isEdgeUniversal()) {
+            if (browser.edgeUwp) {
                 profile.DirectPlayProfiles.push({
                     Container: 'mkv',
                     Type: 'Video',
@@ -379,7 +390,7 @@ define(['browser'], function (browser) {
         }
 
         // Can't use mkv on mobile because we have to use the native player controls and they won't be able to seek it
-        if (canPlayMkv && options.supportsCustomSeeking && !browser.tizen) {
+        if (canPlayMkv && options.supportsCustomSeeking && !browser.tizen && options.enableMkvProgressive !== false) {
             profile.TranscodingProfiles.push({
                 Container: 'mkv',
                 Type: 'Video',
@@ -390,7 +401,7 @@ define(['browser'], function (browser) {
             });
         }
 
-        if (canPlayTs && options.supportsCustomSeeking && !browser.tizen && !browser.web0s) {
+        if (canPlayTs && options.supportsCustomSeeking && !browser.tizen && !browser.web0s && options.enableTsProgressive !== false) {
             profile.TranscodingProfiles.push({
                 Container: 'ts',
                 Type: 'Video',
@@ -404,14 +415,15 @@ define(['browser'], function (browser) {
             });
         }
 
-        if (canPlayHls()) {
+        if (canPlayHls() && options.enableHls !== false) {
             profile.TranscodingProfiles.push({
                 Container: 'ts',
                 Type: 'Video',
                 AudioCodec: hlsVideoAudioCodecs.join(','),
                 VideoCodec: 'h264',
                 Context: 'Streaming',
-                Protocol: 'hls'
+                Protocol: 'hls',
+                MaxAudioChannels: physicalAudioChannels.toString()
             });
         }
 
@@ -477,7 +489,7 @@ define(['browser'], function (browser) {
             }]
         });
 
-        var videoAudioChannels = '6';
+        var videoAudioChannels = browser.tizen ? '8' : '6';
 
         // Handle he-aac not supported
         if (!videoTestElement.canPlayType('video/mp4; codecs="avc1.640029, mp4a.40.5"').replace(/no/, '')) {

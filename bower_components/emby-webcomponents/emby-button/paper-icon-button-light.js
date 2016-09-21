@@ -14,7 +14,9 @@
 
         var div = document.createElement('div');
 
-        div.classList.add('ripple-effect');
+        for (var i = 0, length = btn.classList.length; i < length; i++) {
+            div.classList.add(btn.classList[i] + '-ripple-effect');
+        }
 
         var offsetX = e.offsetX || 0;
         var offsetY = e.offsetY || 0;
@@ -46,7 +48,7 @@
         }
     }
 
-    EmbyButtonPrototype.attachedCallback = function () {
+    EmbyButtonPrototype.createdCallback = function () {
 
         if (this.classList.contains('paper-icon-button-light')) {
             return;

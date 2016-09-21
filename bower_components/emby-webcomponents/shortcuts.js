@@ -1,4 +1,4 @@
-define(['playbackManager', 'inputManager', 'connectionManager', 'embyRouter', 'globalize', 'loading', 'dom'], function (playbackManager, inputManager, connectionManager, embyRouter, globalize, loading, dom) {
+define(['playbackManager', 'inputManager', 'connectionManager', 'embyRouter', 'globalize', 'loading', 'dom', 'recordingHelper'], function (playbackManager, inputManager, connectionManager, embyRouter, globalize, loading, dom, recordingHelper) {
 
     function playAllFromHere(card, serverId, queue) {
 
@@ -46,7 +46,8 @@ define(['playbackManager', 'inputManager', 'connectionManager', 'embyRouter', 'g
 
                 MediaTypes: 'Photo',
                 Filters: 'IsNotFolder',
-                ParentId: item.ParentId
+                ParentId: item.ParentId,
+                SortBy: 'SortName'
 
             }).then(function (result) {
 
@@ -79,15 +80,23 @@ define(['playbackManager', 'inputManager', 'connectionManager', 'embyRouter', 'g
         });
     }
 
-    function showItem(options) {
+    function showItem(item, options) {
 
-        if (options.Type == 'Photo') {
+        if (item.Type == 'Photo') {
 
-            showSlideshow(options.Id, options.ServerId);
+            showSlideshow(item.Id, item.ServerId);
             return;
         }
 
-        embyRouter.showItem(options);
+        embyRouter.showItem(item, options);
+    }
+
+    function showProgramDialog(item) {
+
+        require(['recordingCreator'], function (recordingCreator) {
+
+            recordingCreator.show(item.Id, item.ServerId);
+        });
     }
 
     function getItem(button) {
@@ -167,6 +176,7 @@ define(['playbackManager', 'inputManager', 'connectionManager', 'embyRouter', 'g
         return {
             Type: card.getAttribute('data-type'),
             Id: card.getAttribute('data-id'),
+            TimerId: card.getAttribute('data-timerid'),
             CollectionType: card.getAttribute('data-collectiontype'),
             ChannelId: card.getAttribute('data-channelid'),
             SeriesId: card.getAttribute('data-seriesid'),
@@ -210,7 +220,15 @@ define(['playbackManager', 'inputManager', 'connectionManager', 'embyRouter', 'g
         var type = item.Type;
 
         if (action == 'link') {
-            showItem(item);
+
+            showItem(item, {
+                context: card.getAttribute('data-context')
+            });
+        }
+
+        else if (action == 'programdialog') {
+
+            showProgramDialog(item);
         }
 
         else if (action == 'instantmix') {
@@ -295,10 +313,17 @@ define(['playbackManager', 'inputManager', 'connectionManager', 'embyRouter', 'g
             var serverId = apiClient.serverInfo().Id;
 
             if (item.Type == 'Timer') {
-                require(['recordingEditor'], function (recordingEditor) {
+                if (item.ProgramId) {
+                    require(['recordingCreator'], function (recordingCreator) {
 
-                    recordingEditor.show(item.Id, serverId).then(resolve, reject);
-                });
+                        recordingCreator.show(item.ProgramId, serverId).then(resolve, reject);
+                    });
+                } else {
+                    require(['recordingEditor'], function (recordingEditor) {
+
+                        recordingEditor.show(item.Id, serverId).then(resolve, reject);
+                    });
+                }
             } else {
                 require(['metadataEditor'], function (metadataEditor) {
 
@@ -315,73 +340,18 @@ define(['playbackManager', 'inputManager', 'connectionManager', 'embyRouter', 'g
         if (seriesTimerId && timerId) {
 
             // cancel 
-            cancelTimer(apiClient, timerId, true);
+            recordingHelper.cancelTimer(apiClient, timerId, true);
 
         } else if (timerId) {
 
             // change to series recording, if possible
             // otherwise cancel individual recording
-            changeRecordingToSeries(apiClient, timerId, id);
+            recordingHelper.changeRecordingToSeries(apiClient, timerId, id);
 
         } else if (type == 'Program') {
             // schedule recording
-            createRecording(apiClient, id);
+            recordingHelper.createRecording(apiClient, id);
         }
-    }
-
-    function changeRecordingToSeries(apiClient, timerId, programId) {
-
-        loading.show();
-
-        apiClient.getItem(apiClient.getCurrentUserId(), programId).then(function (item) {
-
-            if (item.IsSeries) {
-                // cancel, then create series
-                cancelTimer(apiClient, timerId, false).then(function () {
-                    apiClient.getNewLiveTvTimerDefaults({ programId: programId }).then(function (timerDefaults) {
-
-                        apiClient.createLiveTvSeriesTimer(timerDefaults).then(function () {
-
-                            loading.hide();
-                            sendToast(globalize.translate('sharedcomponents#SeriesRecordingScheduled'));
-                        });
-                    });
-                });
-            } else {
-                // cancel 
-                cancelTimer(apiClient, timerId, true);
-            }
-        });
-    }
-
-    function cancelTimer(apiClient, timerId, hideLoading) {
-        loading.show();
-        return apiClient.cancelLiveTvTimer(timerId).then(function () {
-
-            if (hideLoading) {
-                loading.hide();
-                sendToast(globalize.translate('sharedcomponents#RecordingCancelled'));
-            }
-        });
-    }
-
-    function createRecording(apiClient, programId) {
-
-        loading.show();
-        apiClient.getNewLiveTvTimerDefaults({ programId: programId }).then(function (item) {
-
-            apiClient.createLiveTvTimer(item).then(function () {
-
-                loading.hide();
-                sendToast(globalize.translate('sharedcomponents#RecordingScheduled'));
-            });
-        });
-    }
-
-    function sendToast(msg) {
-        require(['toast'], function (toast) {
-            toast(msg);
-        });
     }
 
     function onClick(e) {

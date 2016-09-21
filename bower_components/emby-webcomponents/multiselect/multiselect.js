@@ -176,23 +176,22 @@
 
         return new Promise(function (resolve, reject) {
 
-            var msg = globalize.translate('ConfirmDeleteItem');
-            var title = globalize.translate('HeaderDeleteItem');
+            var msg = globalize.translate('sharedcomponents#ConfirmDeleteItem');
+            var title = globalize.translate('sharedcomponents#HeaderDeleteItem');
 
             if (itemIds.length > 1) {
-                msg = globalize.translate('ConfirmDeleteItems');
-                title = globalize.translate('HeaderDeleteItems');
+                msg = globalize.translate('sharedcomponents#ConfirmDeleteItems');
+                title = globalize.translate('sharedcomponents#HeaderDeleteItems');
             }
 
             require(['confirm'], function (confirm) {
 
                 confirm(msg, title).then(function () {
-
                     var promises = itemIds.map(function (itemId) {
                         apiClient.deleteItem(itemId);
                     });
 
-                    resolve();
+                    Promise.all(promises).then(resolve);
                 }, reject);
 
             });
@@ -260,15 +259,13 @@
 
             menuItems.push({
                 name: globalize.translate('sharedcomponents#Refresh'),
-                id: 'refresh',
-                ironIcon: 'refresh'
+                id: 'refresh'
             });
 
             if (user.Policy.EnableSync) {
                 menuItems.push({
                     name: globalize.translate('sharedcomponents#SyncToOtherDevice'),
-                    id: 'sync',
-                    ironIcon: 'sync'
+                    id: 'sync'
                 });
             }
 
@@ -306,7 +303,7 @@
                                 dispatchNeedsRefresh();
                                 break;
                             case 'delete':
-                                deleteItems(items).then(function () {
+                                deleteItems(apiClient, items).then(function () {
                                     embyRouter.goHome();
                                 });
                                 hideSelections();
@@ -346,7 +343,8 @@
                                             return {
                                                 Id: i
                                             };
-                                        })
+                                        }),
+                                        serverId: serverId
                                     });
                                 });
                                 hideSelections();
@@ -359,7 +357,9 @@
                                             return {
                                                 Id: i
                                             };
-                                        })
+                                        }),
+                                        isLocalSync: true,
+                                        serverId: serverId
                                     });
                                 });
                                 hideSelections();
@@ -409,26 +409,18 @@
             return;
         }
 
-        var msg = globalize.translate('sharedcomponents#TheSelectedItemsWillBeGrouped');
+        loading.show();
 
-        require(['confirm'], function (confirm) {
+        apiClient.ajax({
 
-            confirm(msg, globalize.translate('sharedcomponents#GroupVersions')).then(function () {
+            type: "POST",
+            url: apiClient.getUrl("Videos/MergeVersions", { Ids: selection.join(',') })
 
-                loading.show();
+        }).then(function () {
 
-                apiClient.ajax({
-
-                    type: "POST",
-                    url: apiClient.getUrl("Videos/MergeVersions", { Ids: selection.join(',') })
-
-                }).then(function () {
-
-                    loading.hide();
-                    hideSelections();
-                    dispatchNeedsRefresh();
-                });
-            });
+            loading.hide();
+            hideSelections();
+            dispatchNeedsRefresh();
         });
     }
 

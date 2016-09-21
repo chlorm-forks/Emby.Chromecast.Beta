@@ -37,10 +37,18 @@ define(['apphost', 'globalize', 'connectionManager', 'itemHelper', 'embyRouter',
             }
 
             if (item.CanDelete) {
-                commands.push({
-                    name: globalize.translate('sharedcomponents#Delete'),
-                    id: 'delete'
-                });
+
+                if (item.Type == 'Playlist' || item.Type == 'BoxSet') {
+                    commands.push({
+                        name: globalize.translate('sharedcomponents#Delete'),
+                        id: 'delete'
+                    });
+                } else {
+                    commands.push({
+                        name: globalize.translate('sharedcomponents#DeleteMedia'),
+                        id: 'delete'
+                    });
+                }
             }
 
             if (itemHelper.canEdit(user, item.Type)) {
@@ -58,13 +66,11 @@ define(['apphost', 'globalize', 'connectionManager', 'itemHelper', 'embyRouter',
 
             if (itemHelper.canEditImages(user, item.Type)) {
 
-                if (isMobileApp) {
-                    if (options.editImages !== false) {
-                        commands.push({
-                            name: globalize.translate('sharedcomponents#EditImages'),
-                            id: 'editimages'
-                        });
-                    }
+                if (options.editImages !== false) {
+                    commands.push({
+                        name: globalize.translate('sharedcomponents#EditImages'),
+                        id: 'editimages'
+                    });
                 }
             }
 
@@ -162,7 +168,7 @@ define(['apphost', 'globalize', 'connectionManager', 'itemHelper', 'embyRouter',
                 }
             }
 
-            if (item.Type == 'Program' && (!item.TimerId && !item.SeriesTimerId)) {
+            if (item.Type == 'Program') {
 
                 commands.push({
                     name: Globalize.translate('sharedcomponents#Record'),
@@ -212,7 +218,7 @@ define(['apphost', 'globalize', 'connectionManager', 'itemHelper', 'embyRouter',
                 }
             }
 
-            if (isMobileApp && options.sync !== false) {
+            if (options.sync !== false) {
                 if (itemHelper.canSync(user, item)) {
                     commands.push({
                         name: globalize.translate('sharedcomponents#SyncToOtherDevice'),
@@ -318,9 +324,13 @@ define(['apphost', 'globalize', 'connectionManager', 'itemHelper', 'embyRouter',
                     }
                 case 'editimages':
                     {
-                        require(['components/imageeditor/imageeditor'], function (ImageEditor) {
+                        require(['imageEditor'], function (imageEditor) {
 
-                            ImageEditor.show(itemId).then(getResolveFunction(resolve, id, true), getResolveFunction(resolve, id));
+                            imageEditor.show({
+                                itemId: itemId,
+                                serverId: serverId
+
+                            }).then(getResolveFunction(resolve, id, true), getResolveFunction(resolve, id));
                         });
                         break;
                     }
@@ -381,7 +391,7 @@ define(['apphost', 'globalize', 'connectionManager', 'itemHelper', 'embyRouter',
                     }
                 case 'delete':
                     {
-                        deleteItem(apiClient, itemId).then(getResolveFunction(resolve, id, true, true), getResolveFunction(resolve, id));
+                        deleteItem(apiClient, item).then(getResolveFunction(resolve, id, true, true), getResolveFunction(resolve, id));
                         break;
                     }
                 case 'share':
@@ -425,10 +435,8 @@ define(['apphost', 'globalize', 'connectionManager', 'itemHelper', 'embyRouter',
                     {
                         require(['syncDialog'], function (syncDialog) {
                             syncDialog.showMenu({
-                                items: [
-                                {
-                                    Id: itemId
-                                }]
+                                items: [item],
+                                serverId: serverId
                             });
                         });
                         getResolveFunction(resolve, id)();
@@ -438,10 +446,9 @@ define(['apphost', 'globalize', 'connectionManager', 'itemHelper', 'embyRouter',
                     {
                         require(['syncDialog'], function (syncDialog) {
                             syncDialog.showMenu({
-                                items: [
-                                {
-                                    Id: itemId
-                                }]
+                                items: [item],
+                                isLocalSync: true,
+                                serverId: serverId
                             });
                         });
                         getResolveFunction(resolve, id)();
@@ -551,16 +558,25 @@ define(['apphost', 'globalize', 'connectionManager', 'itemHelper', 'embyRouter',
         });
     }
 
-    function deleteItem(apiClient, itemId) {
+    function deleteItem(apiClient, item) {
 
         return new Promise(function (resolve, reject) {
+
+            var itemId = item.Id;
 
             var msg = globalize.translate('sharedcomponents#ConfirmDeleteItem');
             var title = globalize.translate('sharedcomponents#HeaderDeleteItem');
 
             require(['confirm'], function (confirm) {
 
-                confirm(msg, title).then(function () {
+                confirm({
+
+                    title: title,
+                    text: msg,
+                    confirmText: globalize.translate('sharedcomponents#Delete'),
+                    primary: 'cancel'
+
+                }).then(function () {
 
                     apiClient.deleteItem(itemId).then(function () {
                         resolve(true);

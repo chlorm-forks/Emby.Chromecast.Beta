@@ -20,13 +20,10 @@
                 if (layoutManager.tv) {
                     dialogOptions.size = 'fullscreen';
                 } else {
-                    dialogOptions.size = 'medium';
+                    dialogOptions.size = 'medium-tall';
                 }
 
                 var dlg = dialogHelper.createDialog(dialogOptions);
-
-                dlg.classList.add('ui-body-b');
-                dlg.classList.add('background-theme-b');
 
                 dlg.classList.add('formDialog');
 
@@ -36,7 +33,6 @@
                 html += globalize.translateDocument(template, 'sharedcomponents');
 
                 dlg.innerHTML = html;
-                document.body.appendChild(dlg);
 
                 dlg.querySelector('.txtPersonName', dlg).value = person.Name || '';
                 dlg.querySelector('.selectPersonType', dlg).value = person.Type || '';

@@ -32,7 +32,7 @@ define(['css!./indicators.css', 'material-icons'], function () {
                 return getProgressHtml(item.CompletionPercentage, options);
             }
 
-            var userData = item.UserData;
+            var userData = options ? (options.userData || item.UserData) : item.UserData;
             if (userData) {
                 var pct = userData.PlayedPercentage;
 
@@ -99,10 +99,10 @@ define(['css!./indicators.css', 'material-icons'], function () {
     function getTimerIndicator(item) {
 
         if (item.SeriesTimerId) {
-            return '<i class="md-icon timerIndicator indicatorIcon">fiber_smart_record</i>';
+            return '<i class="md-icon timerIndicator indicatorIcon">&#xE062;</i>';
         }
         if (item.TimerId) {
-            return '<i class="md-icon timerIndicator indicatorIcon">fiber_manual_record</i>';
+            return '<i class="md-icon timerIndicator indicatorIcon">&#xE061;</i>';
         }
 
         return '';
@@ -111,7 +111,7 @@ define(['css!./indicators.css', 'material-icons'], function () {
     function getSyncIndicator(item) {
 
         if (item.SyncPercent == 100) {
-            return '<div class="syncIndicator indicator fullSyncIndicator"><i class="md-icon indicatorIcon fullSyncIndicatorIcon">offline_pin</i></div>';
+            return '<div class="syncIndicator indicator fullSyncIndicator"><i class="md-icon indicatorIcon">file_download</i></div>';
         } else if (item.SyncPercent != null) {
             return '<div class="syncIndicator indicator emptySyncIndicator"><i class="md-icon indicatorIcon">file_download</i></div>';
         }

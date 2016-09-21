@@ -15,13 +15,15 @@ define(['dialog', 'globalize'], function (dialog, globalize) {
         var items = [];
 
         items.push({
-            name: globalize.translate('sharedcomponents#ButtonOk'),
-            id: 'ok'
+            name: options.cancelText || globalize.translate('sharedcomponents#ButtonCancel'),
+            id: 'cancel',
+            type: options.primary == 'cancel' ? 'submit' : 'cancel'
         });
 
         items.push({
-            name: globalize.translate('sharedcomponents#ButtonCancel'),
-            id: 'cancel'
+            name: options.confirmText || globalize.translate('sharedcomponents#ButtonOk'),
+            id: 'ok',
+            type: options.primary == 'cancel' ? 'cancel' : 'submit'
         });
 
         options.buttons = items;

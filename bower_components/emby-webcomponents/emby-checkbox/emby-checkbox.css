@@ -2,7 +2,7 @@
     position: relative;
     z-index: 1;
     vertical-align: middle;
-    display: inline-flex;
+    display: inline-block;
     box-sizing: border-box;
     width: 100%;
     margin: 0;
@@ -17,8 +17,19 @@
 }
 
 .checkboxContainer {
-    margin-bottom: 2em;
-    display: flex;
+    margin-bottom: 1.8em;
+    display: block;
+}
+
+@supports (display: flex) {
+
+    .mdl-checkbox {
+        display: inline-flex;
+    }
+
+    .checkboxContainer {
+        display: flex;
+    }
 }
 
 .checkboxContainer-withDescription {
@@ -27,8 +38,9 @@
 
 .mdl-checkbox__input {
     position: absolute;
-    width: 0;
-    height: 0;
+    /* 1px is for focusing purposes, so the focusManager doesn't skip over it */
+    width: 1px;
+    height: 1px;
     margin: 0;
     padding: 0;
     opacity: 0;
@@ -112,7 +124,15 @@
     cursor: auto;
 }
 
-.checkboxList .mdl-checkbox {
+.checkboxList > .mdl-checkbox {
     display: flex;
     margin: .5em 0;
+}
+
+.checkboxList-paperList {
+    padding: 1em !important;
+}
+
+.checkboxListLabel {
+    opacity: .7;
 }
