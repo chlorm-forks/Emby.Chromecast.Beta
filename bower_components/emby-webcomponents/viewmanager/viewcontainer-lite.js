@@ -1,4 +1,5 @@
-define(['browser', 'css!./viewcontainer-lite'], function (browser) {
+define(['browser', 'dom', 'css!./viewcontainer-lite'], function (browser, dom) {
+    'use strict';
 
     var mainAnimatedPages = document.querySelector('.mainAnimatedPages');
     var allPages = [];
@@ -8,19 +9,12 @@ define(['browser', 'css!./viewcontainer-lite'], function (browser) {
 
     function enableAnimation() {
 
-        if (browser.animate) {
-            return true;
-        }
-
+        // too slow
         if (browser.tv) {
             return false;
         }
 
-        if (browser.operaTv) {
-            return false;
-        }
-
-        return browser.edge && !browser.mobile;
+        return browser.supportsCssAnimation();
     }
 
     function loadView(options) {
@@ -32,7 +26,7 @@ define(['browser', 'css!./viewcontainer-lite'], function (browser) {
         cancelActiveAnimations();
 
         var selected = selectedPageIndex;
-        var previousAnimatable = selected == -1 ? null : allPages[selected];
+        var previousAnimatable = selected === -1 ? null : allPages[selected];
         var pageIndex = selected + 1;
 
         if (pageIndex >= pageContainerCount) {
@@ -81,7 +75,7 @@ define(['browser', 'css!./viewcontainer-lite'], function (browser) {
 
     function beforeAnimate(allPages, newPageIndex, oldPageIndex) {
         for (var i = 0, length = allPages.length; i < length; i++) {
-            if (newPageIndex == i || oldPageIndex == i) {
+            if (newPageIndex === i || oldPageIndex === i) {
                 //allPages[i].classList.remove('hide');
             } else {
                 allPages[i].classList.add('hide');
@@ -91,7 +85,7 @@ define(['browser', 'css!./viewcontainer-lite'], function (browser) {
 
     function afterAnimate(allPages, newPageIndex) {
         for (var i = 0, length = allPages.length; i < length; i++) {
-            if (newPageIndex == i) {
+            if (newPageIndex === i) {
                 //allPages[i].classList.remove('hide');
             } else {
                 allPages[i].classList.add('hide');
@@ -101,10 +95,10 @@ define(['browser', 'css!./viewcontainer-lite'], function (browser) {
 
     function animate(newAnimatedPage, oldAnimatedPage, transition, isBack) {
 
-        if (enableAnimation() && oldAnimatedPage && newAnimatedPage.animate) {
-            if (transition == 'slide') {
+        if (enableAnimation() && oldAnimatedPage) {
+            if (transition === 'slide') {
                 return slide(newAnimatedPage, oldAnimatedPage, transition, isBack);
-            } else if (transition == 'fade') {
+            } else if (transition === 'fade') {
                 return fade(newAnimatedPage, oldAnimatedPage, transition, isBack);
             }
         }
@@ -115,72 +109,76 @@ define(['browser', 'css!./viewcontainer-lite'], function (browser) {
     function slide(newAnimatedPage, oldAnimatedPage, transition, isBack) {
 
         return new Promise(function (resolve, reject) {
-            var timings = {
-                duration: 450,
-                iterations: 1,
-                easing: 'ease-out',
-                fill: 'both'
-            }
+
+            var duration = 450;
 
             var animations = [];
 
             if (oldAnimatedPage) {
-                var destination = isBack ? '100%' : '-100%';
-
-                animations.push(oldAnimatedPage.animate([
-
-                  { transform: 'none', offset: 0 },
-                  { transform: 'translate3d(' + destination + ', 0, 0)', offset: 1 }
-
-                ], timings));
+                if (isBack) {
+                    setAnimation(oldAnimatedPage, 'view-slideright-r ' + duration + 'ms ease-out normal both');
+                } else {
+                    setAnimation(oldAnimatedPage, 'view-slideleft-r ' + duration + 'ms ease-out normal both');
+                }
+                animations.push(oldAnimatedPage);
             }
 
-            var start = isBack ? '-100%' : '100%';
-
-            animations.push(newAnimatedPage.animate([
-
-              { transform: 'translate3d(' + start + ', 0, 0)', offset: 0 },
-              { transform: 'none', offset: 1 }
-
-            ], timings));
+            if (isBack) {
+                setAnimation(newAnimatedPage, 'view-slideright ' + duration + 'ms ease-out normal both');
+            } else {
+                setAnimation(newAnimatedPage, 'view-slideleft ' + duration + 'ms ease-out normal both');
+            }
+            animations.push(newAnimatedPage);
 
             currentAnimations = animations;
 
-            animations[animations.length - 1].onfinish = resolve;
+            var onAnimationComplete = function () {
+                dom.removeEventListener(newAnimatedPage, dom.whichAnimationEvent(), onAnimationComplete, {
+                    once: true
+                });
+                resolve();
+            };
+
+            dom.addEventListener(newAnimatedPage, dom.whichAnimationEvent(), onAnimationComplete, {
+                once: true
+            });
         });
     }
 
     function fade(newAnimatedPage, oldAnimatedPage, transition, isBack) {
 
         return new Promise(function (resolve, reject) {
-            var timings = {
-                duration: 300,
-                iterations: 1,
-                easing: 'ease-out',
-                fill: 'both'
-            }
 
+            var duration = 400;
             var animations = [];
 
             if (oldAnimatedPage) {
-                animations.push(oldAnimatedPage.animate([
-
-                  { opacity: 1, offset: 0 },
-                  { opacity: 0, offset: 1 }
-
-                ], timings));
+                setAnimation(oldAnimatedPage, 'view-fadeout ' + duration + 'ms ease-out normal both');
+                animations.push(oldAnimatedPage);
             }
 
-            animations.push(newAnimatedPage.animate([
-
-                  { opacity: 0, offset: 0 },
-                  { opacity: 1, offset: 1 }
-
-            ], timings));
+            setAnimation(newAnimatedPage, 'view-fadein ' + duration + 'ms ease-in normal both');
+            animations.push(newAnimatedPage);
 
             currentAnimations = animations;
 
-            animations[animations.length - 1].onfinish = resolve;
+            var onAnimationComplete = function () {
+                dom.removeEventListener(newAnimatedPage, dom.whichAnimationEvent(), onAnimationComplete, {
+                    once: true
+                });
+                resolve();
+            };
+
+            dom.addEventListener(newAnimatedPage, dom.whichAnimationEvent(), onAnimationComplete, {
+                once: true
+            });
+        });
+    }
+
+    function setAnimation(elem, value) {
+
+        requestAnimationFrame(function () {
+            elem.style.animation = value;
         });
     }
 
@@ -189,16 +187,7 @@ define(['browser', 'css!./viewcontainer-lite'], function (browser) {
 
         var animations = currentAnimations;
         for (var i = 0, length = animations.length; i < length; i++) {
-            cancelAnimation(animations[i]);
-        }
-    }
-
-    function cancelAnimation(animation) {
-
-        try {
-            animation.cancel();
-        } catch (err) {
-            console.log('Error canceling animation: ' + err);
+            animations[i].animation = 'none';
         }
     }
 
@@ -212,7 +201,7 @@ define(['browser', 'css!./viewcontainer-lite'], function (browser) {
         var url = options.url;
         var index = currentUrls.indexOf(url);
 
-        if (index != -1) {
+        if (index !== -1) {
 
             var animatable = allPages[index];
             var view = animatable;
@@ -226,7 +215,7 @@ define(['browser', 'css!./viewcontainer-lite'], function (browser) {
                 cancelActiveAnimations();
 
                 var selected = selectedPageIndex;
-                var previousAnimatable = selected == -1 ? null : allPages[selected];
+                var previousAnimatable = selected === -1 ? null : allPages[selected];
 
                 if (onBeforeChange) {
                     onBeforeChange(view, true, options);
@@ -263,10 +252,6 @@ define(['browser', 'css!./viewcontainer-lite'], function (browser) {
         currentUrls = [];
         mainAnimatedPages.innerHTML = '';
         selectedPageIndex = -1;
-    }
-
-    if (enableAnimation()) {
-        require(['webAnimations']);
     }
 
     return {

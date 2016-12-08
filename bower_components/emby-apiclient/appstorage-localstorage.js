@@ -1,18 +1,22 @@
 ﻿define([], function () {
+    'use strict';
 
     var myStore = {};
     var cache;
     var localData;
 
     function updateCache() {
-        cache.put('data', new Response(JSON.stringify(localData)));
+
+        if (cache) {
+            cache.put('data', new Response(JSON.stringify(localData)));
+        }
     }
 
     myStore.setItem = function (name, value) {
         localStorage.setItem(name, value);
 
         if (localData) {
-            var changed = localData[name] != value;
+            var changed = localData[name] !== value;
 
             if (changed) {
                 localData[name] = value;
@@ -37,10 +41,13 @@
 
     try {
 
-        caches.open('embydata').then(function (result) {
-            cache = result;
-            localData = {};
-        });
+        if (self.caches) {
+
+            caches.open('embydata').then(function (result) {
+                cache = result;
+                localData = {};
+            });
+        }
 
     } catch (err) {
         console.log('Error opening cache: ' + err);

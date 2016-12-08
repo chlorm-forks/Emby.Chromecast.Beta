@@ -14,7 +14,6 @@
 
 .indicator {
     border-radius: 500px;
-    display: -ms-flex;
     display: -webkit-flex;
     display: flex;
     align-items: center;
@@ -26,6 +25,10 @@
 
 .timerIndicator {
     color: #CB272A;
+}
+
+.timerIndicator-inactive {
+    color: #888;
 }
 
 .indicator + .indicator {
@@ -41,7 +44,6 @@
 .countIndicator {
     background: rgba(82,181,75,1);
     border-radius: 500px;
-    display: -ms-flex;
     display: -webkit-flex;
     display: flex;
     align-items: center;
@@ -53,7 +55,6 @@
 .playedIndicator {
     background: rgba(82,181,75,1);
     border-radius: 500px;
-    display: -ms-flex;
     display: -webkit-flex;
     display: flex;
     align-items: center;

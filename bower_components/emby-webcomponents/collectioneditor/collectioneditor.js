@@ -1,4 +1,5 @@
 ﻿define(['shell', 'dialogHelper', 'loading', 'layoutManager', 'connectionManager', 'embyRouter', 'globalize', 'emby-checkbox', 'emby-input', 'paper-icon-button-light', 'emby-select', 'material-icons', 'css!./../formdialog', 'emby-button'], function (shell, dialogHelper, loading, layoutManager, connectionManager, embyRouter, globalize) {
+    'use strict';
 
     var currentServerId;
 
@@ -41,9 +42,6 @@
             Name: dlg.querySelector('#txtNewCollectionName').value,
             IsLocked: !dlg.querySelector('#chkEnableInternetMetadata').checked,
             Ids: dlg.querySelector('.fldSelectedItemIds').value || ''
-
-            //ParentId: getParameterByName('parentId') || LibraryMenu.getTopParentId()
-
         });
 
         apiClient.ajax({
@@ -148,7 +146,9 @@
         html += '<div class="fldSelectCollection">';
         html += '<br/>';
         html += '<br/>';
+        html += '<div class="selectContainer">';
         html += '<select is="emby-select" label="' + globalize.translate('sharedcomponents#LabelCollection') + '" id="selectCollectionToAddTo" autofocus></select>';
+        html += '</div>';
         html += '</div>';
 
         html += '<div class="newCollectionInfo">';

@@ -14,3 +14,17 @@
     bottom: 0;
     contain: layout style;
 }
+
+.backdropImageFadeIn {
+    animation: backdrop-fadein 800ms ease-in normal both;
+}
+
+@keyframes backdrop-fadein {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

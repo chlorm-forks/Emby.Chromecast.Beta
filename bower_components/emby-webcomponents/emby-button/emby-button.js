@@ -1,4 +1,5 @@
 ﻿define(['browser', 'dom', 'css!./emby-button', 'registerElement'], function (browser, dom) {
+    'use strict';
 
     var EmbyButtonPrototype = Object.create(HTMLButtonElement.prototype);
 
@@ -25,14 +26,13 @@
             btn.appendChild(div);
         }
 
-        div.addEventListener("animationend", function () {
+        div.addEventListener(dom.whichAnimationEvent(), function () {
             div.parentNode.removeChild(div);
         }, false);
     }
 
-    function animateButton(e) {
+    function animateButton(e, btn) {
 
-        var btn = this;
         requestAnimationFrame(function () {
             animateButtonInternal(e, btn);
         });
@@ -40,16 +40,21 @@
 
     function onKeyDown(e) {
 
-        if (e.keyCode == 13) {
-            animateButton.call(this, e);
+        if (e.keyCode === 13) {
+            animateButton(e, this);
         }
     }
 
     function onMouseDown(e) {
 
-        if (e.button == 0) {
-            animateButton.call(this, e);
+        if (e.button === 0) {
+            animateButton(e, this);
         }
+    }
+
+    function onClick(e) {
+
+        animateButton(e, this);
     }
 
     function enableAnimation() {
@@ -68,7 +73,8 @@
 
         this.classList.add('emby-button');
 
-        if (browser.safari || browser.firefox || browser.noFlex) {
+        // Even though they support flex, it doesn't quite work with button elements
+        if (browser.firefox || browser.safari) {
             this.classList.add('emby-button-noflex');
         }
 
@@ -77,7 +83,7 @@
                 passive: true
             });
             if (browser.safari) {
-                dom.addEventListener(this, 'click', animateButton, {
+                dom.addEventListener(this, 'click', onClick, {
                     passive: true
                 });
             } else {

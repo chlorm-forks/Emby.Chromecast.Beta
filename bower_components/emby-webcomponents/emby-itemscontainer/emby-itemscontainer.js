@@ -1,4 +1,5 @@
 ﻿define(['itemShortcuts', 'connectionManager', 'layoutManager', 'browser', 'dom', 'loading', 'serverNotifications', 'events', 'registerElement'], function (itemShortcuts, connectionManager, layoutManager, browser, dom, loading, serverNotifications, events) {
+    'use strict';
 
     var ItemsContainerProtoType = Object.create(HTMLDivElement.prototype);
 
@@ -117,6 +118,8 @@
 
         var serverId = el.getAttribute('data-serverid');
         var apiClient = connectionManager.getApiClient(serverId);
+
+        newIndex = Math.max(0, newIndex - 1);
 
         apiClient.ajax({
 
@@ -241,7 +244,9 @@
         if (browser.touch) {
             this.addEventListener('contextmenu', disableEvent);
         } else {
-            this.addEventListener('contextmenu', onContextMenu);
+            if (this.getAttribute('data-contextmenu') !== 'false') {
+                this.addEventListener('contextmenu', onContextMenu);
+            }
         }
 
         if (layoutManager.desktop) {
