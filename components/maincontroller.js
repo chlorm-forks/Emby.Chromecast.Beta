@@ -673,8 +673,7 @@
 
         var profile = deviceProfileBuilder({
             supportsCustomSeeking: true,
-            audioChannels: transcodingAudioChannels,
-            enableMkvProgressive: false
+            audioChannels: transcodingAudioChannels
         });
 
         profile.MaxStreamingBitrate = maxBitrate;

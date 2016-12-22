@@ -240,7 +240,7 @@ define(['browser'], function (browser) {
     return function (options) {
 
         options = options || {};
-        var physicalAudioChannels = options.audioChannels || (browser.tv || browser.xboxOne || browser.ps4 ? 6 : 2);
+        var physicalAudioChannels = options.audioChannels || (browser.tv || browser.xboxOne || browser.ps4 || !browser.mobile ? 6 : 2);
 
         var bitrateSetting = getMaxBitrate();
 
@@ -272,7 +272,7 @@ define(['browser'], function (browser) {
 
             // This works in edge desktop, but not mobile
             // TODO: Retest this on mobile
-            if (!browser.edge || !browser.touch) {
+            if (!browser.edge || !browser.touch || browser.edgeUwp) {
                 hlsVideoAudioCodecs.push('ac3');
             }
         }
@@ -297,7 +297,10 @@ define(['browser'], function (browser) {
             if (!mp3Added) {
                 videoAudioCodecs.push('mp3');
             }
-            hlsVideoAudioCodecs.push('mp3');
+            if (!browser.ps4) {
+                // PS4 fails to load HLS with mp3 audio
+                hlsVideoAudioCodecs.push('mp3');
+            }
         }
 
         if (browser.tizen || options.supportsDts) {
@@ -305,8 +308,8 @@ define(['browser'], function (browser) {
             videoAudioCodecs.push('dts');
         }
 
-        if (browser.edgeUwp) {
-            //videoAudioCodecs.push('truehd');
+        if (options.supportsTrueHd) {
+            videoAudioCodecs.push('truehd');
         }
 
         videoAudioCodecs = videoAudioCodecs.filter(function (c) {
